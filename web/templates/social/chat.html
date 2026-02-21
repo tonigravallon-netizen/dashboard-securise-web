@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% block title %}Chat avec {{ other_username }} - Dashboard Securise{% endblock %}
+
+{% block content %}
+<div class="flex flex-col h-[calc(100vh-4rem)] md:h-[calc(100vh-3.5rem)]">
+    <!-- Header du chat -->
+    <div class="flex items-center gap-3 px-4 py-3 bg-dark-800 border-b border-slate-700/50">
+        <a href="{{ url_for('social.messages') }}" class="text-slate-400 hover:text-slate-200 transition-colors">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+            </svg>
+        </a>
+        <span class="w-8 h-8 bg-blue-600/20 text-blue-400 rounded-full flex items-center justify-center text-xs font-bold">
+            {{ other_username[:1]|upper }}
+        </span>
+        <span class="text-sm font-medium text-slate-200">{{ other_username }}</span>
+    </div>
+
+    <!-- Zone de messages -->
+    <div id="chat-container" class="chat-container flex-1 overflow-y-auto p-4 space-y-2">
+        {% for msg in messages %}
+        <div class="flex flex-col {% if msg.sender_uid == current_user.uid %}items-end{% else %}items-start{% endif %}">
+            <div class="chat-bubble {% if msg.sender_uid == current_user.uid %}sent{% else %}received{% endif %}">
+                {{ msg.text }}
+            </div>
+            <span class="chat-time mt-0.5 {% if msg.sender_uid == current_user.uid %}text-right{% endif %}">
+                {{ msg.timestamp[:16].replace('T', ' ') if msg.timestamp else '' }}
+            </span>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Barre d'envoi -->
+    <div class="px-4 py-3 bg-dark-800 border-t border-slate-700/50 mb-16 md:mb-0">
+        <form id="msg-form" class="flex gap-2">
+            <input type="text" id="msg-input" placeholder="Ecrivez un message..."
+                   autocomplete="off"
+                   class="flex-1 px-4 py-2.5 bg-dark-900 border border-slate-700 rounded-xl text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all text-sm">
+            <button type="submit"
+                    class="px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-sm font-medium transition-all active:scale-95">
+                Envoyer
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const CONV_ID = "{{ conv_id }}";
+const OTHER_UID = "{{ other_uid }}";
+const MY_UID = "{{ current_user.uid }}";
+let lastMsgCount = {{ messages|length }};
+
+// Scroll en bas au chargement
+const chatContainer = document.getElementById('chat-container');
+chatContainer.scrollTop = chatContainer.scrollHeight;
+
+// Envoi de message
+document.getElementById('msg-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const input = document.getElementById('msg-input');
+    const text = input.value.trim();
+    if (!text) return;
+
+    // Afficher immediatement (optimistic)
+    appendMessage(text, true);
+    input.value = '';
+
+    await fetch('/api/send-message', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+            conv_id: CONV_ID,
+            text: text,
+            receiver_uid: OTHER_UID
+        })
+    });
+});
+
+function appendMessage(text, isMine) {
+    const div = document.createElement('div');
+    div.className = `flex flex-col ${isMine ? 'items-end' : 'items-start'}`;
+
+    const now = new Date().toISOString().slice(0, 16).replace('T', ' ');
+    div.innerHTML = `
+        <div class="chat-bubble ${isMine ? 'sent' : 'received'}">${escapeHtml(text)}</div>
+        <span class="chat-time mt-0.5 ${isMine ? 'text-right' : ''}">${now}</span>
+    `;
+    chatContainer.appendChild(div);
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+    lastMsgCount++;
+}
+
+function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+}
+
+// Polling pour nouveaux messages (toutes les 3 secondes)
+setInterval(async () => {
+    try {
+        const res = await fetch(`/api/get-messages/${CONV_ID}`);
+        const msgs = await res.json();
+        if (msgs.length > lastMsgCount) {
+            // Nouveaux messages recus
+            const newMsgs = msgs.slice(lastMsgCount);
+            for (const msg of newMsgs) {
+                if (msg.sender_uid !== MY_UID) {
+                    appendMessage(msg.text, false);
+                }
+            }
+            lastMsgCount = msgs.length;
+        }
+    } catch(e) {}
+}, 3000);
+
+// Focus sur l'input
+document.getElementById('msg-input').focus();
+</script>
+{% endblock %}

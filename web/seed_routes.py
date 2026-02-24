@@ -1068,17 +1068,21 @@ def fix_wiki():
     """Supprime les doublons et corrige les URLs d'images."""
     fb = get_firebase()
 
-    all_articles = fb.list_articles(status="published", limit=50)
+    # Requete sans order_by pour eviter le besoin d'index composite Firestore
+    all_articles = fb.query_collection("articles", "status", "EQUAL", "published",
+                                        order_by="", limit=100)
     if not all_articles:
-        flash("Aucun article a corriger.", "info")
+        flash("Aucun article trouve dans Firestore.", "warning")
         return redirect(url_for("wiki.home"))
 
-    # Deduplication par slug
+    # Deduplication par slug - garder le premier, supprimer les suivants
     seen_slugs = {}
     duplicates_removed = 0
     for art in all_articles:
         slug = art.get("slug", "")
         art_id = art.get("__id", "")
+        if not slug or not art_id:
+            continue
         if slug in seen_slugs:
             # Doublon - supprimer
             fb.delete_document("articles", art_id)
@@ -1090,26 +1094,16 @@ def fix_wiki():
     images_fixed = 0
     for slug, art_id in seen_slugs.items():
         new_img = None
-        if "terre-plate" in slug:
-            new_img = IMAGE_MAP["terre-plate"]
-        elif "epstein" in slug and "email" not in slug:
-            new_img = IMAGE_MAP["epstein"]
-        elif "email" in slug or "document" in slug:
-            new_img = IMAGE_MAP["emails"]
-        elif "franc-macon" in slug:
-            new_img = IMAGE_MAP["franc-maconnerie"]
-        elif "illuminati" in slug:
-            new_img = IMAGE_MAP["illuminati"]
-        elif "rothschild" in slug:
-            new_img = IMAGE_MAP["rothschild"]
-        elif "symbolis" in slug or "occulte" in slug or "rituel" in slug:
-            new_img = IMAGE_MAP["occulte"]
-        elif "mk-ultra" in slug or "controle-mental" in slug:
-            new_img = IMAGE_MAP["mk-ultra"]
-        elif "bilderberg" in slug:
-            new_img = IMAGE_MAP["bilderberg"]
-        elif "haarp" in slug:
-            new_img = IMAGE_MAP["haarp"]
+        for key, url in IMAGE_MAP.items():
+            if key in slug:
+                new_img = url
+                break
+        # Fallbacks plus specifiques
+        if not new_img:
+            if "email" in slug or "document" in slug:
+                new_img = IMAGE_MAP["emails"]
+            elif "epstein" in slug:
+                new_img = IMAGE_MAP["epstein"]
 
         if new_img:
             fb.update_article(art_id, {"image_url": new_img})

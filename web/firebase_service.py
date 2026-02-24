@@ -494,8 +494,15 @@ class FirebaseService:
 
     def list_articles(self, status="published", limit=20):
         """Liste les articles publies, tries par date de creation descendante."""
-        return self.query_collection("articles", "status", "EQUAL", status,
-                                     order_by="created_at", limit=limit)
+        results = self.query_collection("articles", "status", "EQUAL", status,
+                                        order_by="created_at", limit=limit)
+        # Fallback sans tri si l'index composite n'existe pas
+        if not results:
+            results = self.query_collection("articles", "status", "EQUAL", status,
+                                            order_by="", limit=limit)
+            # Tri cote Python
+            results.sort(key=lambda x: x.get("created_at", ""), reverse=True)
+        return results
 
     def get_featured_articles(self, limit=6):
         """Recupere les articles en vedette."""

@@ -1042,3 +1042,78 @@ HAARP reste un sujet ou le **secret militaire** alimente les theories les plus e
 
     flash(f"{len(articles)} dossiers ont ete deployes dans les archives!", "success")
     return redirect(url_for("wiki.home"))
+
+
+# =========================================================================
+#  Route de nettoyage des doublons + correction images
+# =========================================================================
+
+IMAGE_MAP = {
+    "terre-plate": "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=640&h=400&fit=crop",
+    "epstein": "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=640&h=400&fit=crop",
+    "emails": "https://images.unsplash.com/photo-1568667256549-094345857637?w=640&h=400&fit=crop",
+    "franc-maconnerie": "https://images.unsplash.com/photo-1572883454114-efb8df45c926?w=640&h=400&fit=crop",
+    "illuminati": "https://images.unsplash.com/photo-1518640467707-6811f4a6ab73?w=640&h=400&fit=crop",
+    "rothschild": "https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?w=640&h=400&fit=crop",
+    "occulte": "https://images.unsplash.com/photo-1509281373149-e957c6296406?w=640&h=400&fit=crop",
+    "mk-ultra": "https://images.unsplash.com/photo-1517373116369-9bdb8cdc9f62?w=640&h=400&fit=crop",
+    "bilderberg": "https://images.unsplash.com/photo-1577415124269-fc1140815e3d?w=640&h=400&fit=crop",
+    "haarp": "https://images.unsplash.com/photo-1527482937786-6a7c43f73124?w=640&h=400&fit=crop",
+}
+
+
+@seed_bp.route("/admin/fix-wiki")
+@login_required
+def fix_wiki():
+    """Supprime les doublons et corrige les URLs d'images."""
+    fb = get_firebase()
+
+    all_articles = fb.list_articles(status="published", limit=50)
+    if not all_articles:
+        flash("Aucun article a corriger.", "info")
+        return redirect(url_for("wiki.home"))
+
+    # Deduplication par slug
+    seen_slugs = {}
+    duplicates_removed = 0
+    for art in all_articles:
+        slug = art.get("slug", "")
+        art_id = art.get("__id", "")
+        if slug in seen_slugs:
+            # Doublon - supprimer
+            fb.delete_document("articles", art_id)
+            duplicates_removed += 1
+        else:
+            seen_slugs[slug] = art_id
+
+    # Corriger les images
+    images_fixed = 0
+    for slug, art_id in seen_slugs.items():
+        new_img = None
+        if "terre-plate" in slug:
+            new_img = IMAGE_MAP["terre-plate"]
+        elif "epstein" in slug and "email" not in slug:
+            new_img = IMAGE_MAP["epstein"]
+        elif "email" in slug or "document" in slug:
+            new_img = IMAGE_MAP["emails"]
+        elif "franc-macon" in slug:
+            new_img = IMAGE_MAP["franc-maconnerie"]
+        elif "illuminati" in slug:
+            new_img = IMAGE_MAP["illuminati"]
+        elif "rothschild" in slug:
+            new_img = IMAGE_MAP["rothschild"]
+        elif "symbolis" in slug or "occulte" in slug or "rituel" in slug:
+            new_img = IMAGE_MAP["occulte"]
+        elif "mk-ultra" in slug or "controle-mental" in slug:
+            new_img = IMAGE_MAP["mk-ultra"]
+        elif "bilderberg" in slug:
+            new_img = IMAGE_MAP["bilderberg"]
+        elif "haarp" in slug:
+            new_img = IMAGE_MAP["haarp"]
+
+        if new_img:
+            fb.update_article(art_id, {"image_url": new_img})
+            images_fixed += 1
+
+    flash(f"Nettoyage termine : {duplicates_removed} doublons supprimes, {images_fixed} images corrigees.", "success")
+    return redirect(url_for("wiki.home"))

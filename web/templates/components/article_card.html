@@ -1,0 +1,79 @@
+{% macro render_card(article) %}
+{% set classification_classes = {
+    'public': 'badge-public',
+    'confidentiel': 'badge-confidentiel',
+    'secret': 'badge-secret',
+    'top-secret': 'badge-top-secret',
+} %}
+{% set classification_labels = {
+    'public': 'DECLASSIFIE',
+    'confidentiel': 'CONFIDENTIEL',
+    'secret': 'SECRET',
+    'top-secret': 'TOP SECRET',
+} %}
+{% set category_colors = {
+    'technologie': '#00ff41',
+    'histoire': '#d4af37',
+    'politique': '#dc2626',
+    'espace': '#22d3ee',
+    'sante': '#a855f7',
+    'finance': '#f59e0b',
+    'occultisme': '#ec4899',
+    'science': '#3b82f6',
+} %}
+{% set category_icons = {
+    'technologie': '👁️',
+    'histoire': '📜',
+    'politique': '🏛️',
+    'espace': '🚀',
+    'sante': '🧪',
+    'finance': '💰',
+    'occultisme': '🔺',
+    'science': '⚛️',
+} %}
+<a href="{{ url_for('wiki.article', slug=article.slug) }}"
+   class="article-card block bg-abyss-800 rounded-xl border border-gold-500/8 overflow-hidden group">
+    <div class="p-5">
+        <!-- Badges -->
+        <div class="flex items-center gap-2 mb-3 flex-wrap">
+            <span class="badge-classified {{ classification_classes.get(article.classification, 'badge-confidentiel') }}">
+                {{ classification_labels.get(article.classification, 'CONFIDENTIEL') }}
+            </span>
+            {% if article.category %}
+            <span class="badge-category" style="background: {{ category_colors.get(article.category, '#d4af37') }}15; color: {{ category_colors.get(article.category, '#d4af37') }};">
+                {{ category_icons.get(article.category, '📄') }} {{ article.category|capitalize }}
+            </span>
+            {% endif %}
+            {% if article.generated_by_ai %}
+            <span class="badge-category bg-matrix-500/10 text-matrix-500">🤖 IA</span>
+            {% endif %}
+        </div>
+
+        <!-- Title -->
+        <h3 class="font-title text-lg text-parchment-100 group-hover:text-gold-500 transition-colors leading-tight">
+            {{ article.title }}
+        </h3>
+
+        <!-- Summary -->
+        {% if article.summary %}
+        <p class="text-sm text-gray-400 mt-2 line-clamp-2 font-article">{{ article.summary }}</p>
+        {% endif %}
+
+        <!-- Footer -->
+        <div class="flex items-center justify-between mt-4 text-xs text-gray-500">
+            <span>par <span class="text-gray-400">{{ article.author_username }}</span></span>
+            <div class="flex items-center gap-3">
+                {% if article.views %}
+                <span>{{ article.views }} vues</span>
+                {% endif %}
+                {% if article.upvotes %}
+                <span class="text-matrix-500">▲ {{ article.upvotes }}</span>
+                {% endif %}
+                {% if article.comment_count %}
+                <span>💬 {{ article.comment_count }}</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</a>
+{% endmacro %}

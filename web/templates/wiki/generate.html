@@ -1,0 +1,202 @@
+{% extends "base_wiki.html" %}
+{% block title %}Generer un dossier (IA){% endblock %}
+
+{% block content %}
+<div class="max-w-3xl">
+    <div class="flex items-center gap-3 mb-6">
+        <span class="text-2xl">🤖</span>
+        <div>
+            <h1 class="font-title text-matrix-500 text-xl">GENERATEUR DE DOSSIERS</h1>
+            <p class="text-xs text-gray-500 font-mono">Powered by ORACLE Intelligence Artificielle</p>
+        </div>
+    </div>
+
+    <!-- Form -->
+    <div id="generate-form" class="bg-abyss-800 rounded-xl border border-matrix-500/10 p-6 space-y-4 mb-6">
+        <div>
+            <label class="block text-xs text-gray-400 mb-1.5 font-mono uppercase tracking-wider">Sujet</label>
+            <input type="text" id="gen-subject" placeholder="Ex: Le projet MK-Ultra et ses experiences sur le controle mental"
+                   class="w-full bg-abyss-700 border border-matrix-500/15 rounded-lg px-4 py-2.5 text-sm text-parchment-100 placeholder-gray-600 focus:border-matrix-500/40 focus:outline-none transition-all">
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div>
+                <label class="block text-xs text-gray-400 mb-1.5 font-mono uppercase tracking-wider">Categorie</label>
+                <select id="gen-category" class="w-full bg-abyss-700 border border-matrix-500/15 rounded-lg px-4 py-2.5 text-sm text-parchment-100 focus:border-matrix-500/40 focus:outline-none transition-all">
+                    <option value="">Auto</option>
+                    <option value="technologie">Technologie</option>
+                    <option value="histoire">Histoire</option>
+                    <option value="politique">Politique</option>
+                    <option value="espace">Espace</option>
+                    <option value="sante">Sante</option>
+                    <option value="finance">Finance</option>
+                    <option value="occultisme">Occultisme</option>
+                    <option value="science">Science</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs text-gray-400 mb-1.5 font-mono uppercase tracking-wider">Ton</label>
+                <select id="gen-tone" class="w-full bg-abyss-700 border border-matrix-500/15 rounded-lg px-4 py-2.5 text-sm text-parchment-100 focus:border-matrix-500/40 focus:outline-none transition-all">
+                    <option value="neutre">Neutre</option>
+                    <option value="conspirationniste">Mysterieux</option>
+                    <option value="sceptique">Sceptique</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs text-gray-400 mb-1.5 font-mono uppercase tracking-wider">Longueur</label>
+                <select id="gen-length" class="w-full bg-abyss-700 border border-matrix-500/15 rounded-lg px-4 py-2.5 text-sm text-parchment-100 focus:border-matrix-500/40 focus:outline-none transition-all">
+                    <option value="court">Court (~800 mots)</option>
+                    <option value="moyen" selected>Moyen (~1500 mots)</option>
+                    <option value="long">Long (~2500 mots)</option>
+                </select>
+            </div>
+        </div>
+        <button onclick="generateArticle()" id="gen-btn"
+                class="w-full bg-matrix-500/15 hover:bg-matrix-500/25 text-matrix-500 py-2.5 rounded-lg border border-matrix-500/20 font-mono text-sm transition-all">
+            ⚡ GENERER LE DOSSIER
+        </button>
+    </div>
+
+    <!-- Loading -->
+    <div id="gen-loading" class="hidden text-center py-12">
+        <div class="spinner mx-auto mb-4" style="border-top-color: #00ff41;"></div>
+        <p class="font-mono text-matrix-500 text-sm decrypting">DECRYPTAGE EN COURS</p>
+        <p class="text-xs text-gray-600 mt-2">L'IA analyse les sources et redige le dossier...</p>
+    </div>
+
+    <!-- Result -->
+    <div id="gen-result" class="hidden">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="font-title text-gold-500 text-sm tracking-widest uppercase">Dossier genere</h2>
+            <button onclick="resetGenerate()" class="text-xs text-gray-500 hover:text-gray-400 transition-colors">Nouveau</button>
+        </div>
+        <div id="gen-preview" class="article-content bg-abyss-800 rounded-xl border border-gold-500/10 p-6 mb-4 max-h-[500px] overflow-y-auto"></div>
+
+        <!-- Save form -->
+        <div class="bg-abyss-800 rounded-xl border border-matrix-500/10 p-4 space-y-3">
+            <input type="text" id="gen-title" placeholder="Titre du dossier"
+                   class="w-full bg-abyss-700 border border-gold-500/15 rounded-lg px-4 py-2 text-sm text-parchment-100 placeholder-gray-600 focus:outline-none transition-all">
+            <input type="text" id="gen-tags" placeholder="Tags (separes par virgules)"
+                   class="w-full bg-abyss-700 border border-gold-500/15 rounded-lg px-4 py-2 text-sm text-parchment-100 placeholder-gray-600 focus:outline-none transition-all">
+            <div class="flex gap-3">
+                <button onclick="saveGenerated()" class="bg-gold-500/15 hover:bg-gold-500/25 text-gold-500 px-4 py-2 rounded-lg border border-gold-500/20 text-sm transition-all">
+                    Publier le dossier
+                </button>
+                <button onclick="editGenerated()" class="bg-abyss-700 hover:bg-abyss-600 text-gray-400 px-4 py-2 rounded-lg border border-gray-700 text-sm transition-all">
+                    Modifier avant publication
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Error -->
+    <div id="gen-error" class="hidden bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3 text-sm text-red-400"></div>
+</div>
+
+{% block scripts %}
+<script>
+let generatedContent = '';
+let generatedHtml = '';
+
+async function generateArticle() {
+    const subject = document.getElementById('gen-subject').value.trim();
+    if (!subject) { alert('Entrez un sujet'); return; }
+
+    document.getElementById('generate-form').classList.add('opacity-50', 'pointer-events-none');
+    document.getElementById('gen-loading').classList.remove('hidden');
+    document.getElementById('gen-result').classList.add('hidden');
+    document.getElementById('gen-error').classList.add('hidden');
+
+    try {
+        const resp = await fetch('/api/wiki/generate-article', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                subject: subject,
+                category: document.getElementById('gen-category').value,
+                tone: document.getElementById('gen-tone').value,
+                length: document.getElementById('gen-length').value,
+            })
+        });
+        const data = await resp.json();
+        if (data.ok) {
+            generatedContent = data.content;
+            generatedHtml = data.content_html;
+            document.getElementById('gen-preview').innerHTML = generatedHtml;
+            document.getElementById('gen-title').value = subject;
+            document.getElementById('gen-result').classList.remove('hidden');
+
+            // Auto-suggest tags
+            suggestTags(subject, data.content);
+        } else {
+            document.getElementById('gen-error').textContent = data.error || 'Erreur inconnue';
+            document.getElementById('gen-error').classList.remove('hidden');
+        }
+    } catch(e) {
+        document.getElementById('gen-error').textContent = 'Erreur de connexion';
+        document.getElementById('gen-error').classList.remove('hidden');
+    }
+
+    document.getElementById('gen-loading').classList.add('hidden');
+    document.getElementById('generate-form').classList.remove('opacity-50', 'pointer-events-none');
+}
+
+async function suggestTags(title, content) {
+    try {
+        const resp = await fetch('/api/wiki/suggest-tags', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ title: title, content: content })
+        });
+        const data = await resp.json();
+        if (data.tags && data.tags.length) {
+            document.getElementById('gen-tags').value = data.tags.join(', ');
+        }
+    } catch(e) { /* ignore */ }
+}
+
+async function saveGenerated() {
+    const title = document.getElementById('gen-title').value.trim();
+    if (!title) { alert('Entrez un titre'); return; }
+
+    try {
+        const resp = await fetch('/api/wiki/save-generated', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                title: title,
+                content: generatedContent,
+                category: document.getElementById('gen-category').value,
+                tags: document.getElementById('gen-tags').value,
+                classification: 'confidentiel',
+            })
+        });
+        const data = await resp.json();
+        if (data.ok) {
+            window.location.href = '/wiki/article/' + data.slug;
+        } else {
+            alert(data.error || 'Erreur');
+        }
+    } catch(e) {
+        alert('Erreur de connexion');
+    }
+}
+
+function editGenerated() {
+    // Redirect to editor with generated content in sessionStorage
+    sessionStorage.setItem('generated_content', generatedContent);
+    sessionStorage.setItem('generated_title', document.getElementById('gen-title').value);
+    sessionStorage.setItem('generated_tags', document.getElementById('gen-tags').value);
+    sessionStorage.setItem('generated_category', document.getElementById('gen-category').value);
+    window.location.href = '/wiki/editor';
+}
+
+function resetGenerate() {
+    generatedContent = '';
+    generatedHtml = '';
+    document.getElementById('gen-subject').value = '';
+    document.getElementById('gen-result').classList.add('hidden');
+    document.getElementById('gen-error').classList.add('hidden');
+}
+</script>
+{% endblock %}
+{% endblock %}

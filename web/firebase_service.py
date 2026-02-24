@@ -472,3 +472,211 @@ class FirebaseService:
         except Exception:
             pass
         return result
+
+    # ── Wiki Articles ─────────────────────────────────────────
+
+    def create_article(self, data):
+        """Cree un nouvel article. Retourne le doc_id ou ''."""
+        return self.add_document("articles", data)
+
+    def get_article_by_slug(self, slug):
+        """Recupere un article par son slug."""
+        results = self.query_collection("articles", "slug", "EQUAL", slug, limit=1)
+        return results[0] if results else None
+
+    def get_article_by_id(self, article_id):
+        """Recupere un article par son ID Firestore."""
+        return self.get_document("articles", article_id)
+
+    def update_article(self, article_id, data):
+        """Met a jour les champs d'un article."""
+        return self.update_fields("articles", article_id, data)
+
+    def list_articles(self, status="published", limit=20):
+        """Liste les articles publies, tries par date de creation descendante."""
+        return self.query_collection("articles", "status", "EQUAL", status,
+                                     order_by="created_at", limit=limit)
+
+    def get_featured_articles(self, limit=6):
+        """Recupere les articles en vedette."""
+        return self.query_two_conditions("articles",
+            "featured", "EQUAL", True,
+            "status", "EQUAL", "published",
+            limit=limit)
+
+    def get_articles_by_category(self, category, limit=20):
+        """Recupere les articles d'une categorie donnee."""
+        return self.query_two_conditions("articles",
+            "category", "EQUAL", category,
+            "status", "EQUAL", "published",
+            order_by="created_at", limit=limit)
+
+    def get_articles_by_tag(self, tag, limit=20):
+        """Recupere les articles contenant un tag specifique."""
+        return self.query_two_conditions("articles",
+            "tags", "ARRAY_CONTAINS", tag,
+            "status", "EQUAL", "published",
+            limit=limit)
+
+    def get_articles_by_author(self, author_uid, limit=20):
+        """Recupere les articles d'un auteur."""
+        return self.query_collection("articles", "author_uid", "EQUAL", author_uid,
+                                     order_by="created_at", limit=limit)
+
+    def search_articles(self, query_text, limit=20):
+        """Recherche d'articles par prefixe de titre (Firestore limitation)."""
+        query_text = query_text.lower().strip()
+        if not query_text:
+            return []
+        return self.query_two_conditions("articles",
+            "title_lower", "GREATER_THAN_OR_EQUAL", query_text,
+            "title_lower", "LESS_THAN", query_text + "\uf8ff",
+            limit=limit)
+
+    def increment_views(self, article_id, current_views):
+        """Incremente le compteur de vues d'un article."""
+        return self.update_fields("articles", article_id, {"views": current_views + 1})
+
+    # ── Article Votes ─────────────────────────────────────────
+
+    def vote_article(self, article_id, user_uid, vote_type):
+        """Vote pour un article (up/down). Retourne (success, new_upvotes, new_downvotes)."""
+        vote_doc_id = f"{article_id}_{user_uid}"
+        existing = self.get_document("article_votes", vote_doc_id)
+
+        article = self.get_article_by_id(article_id)
+        if not article:
+            return False, 0, 0
+
+        upvotes = article.get("upvotes", 0)
+        downvotes = article.get("downvotes", 0)
+        if isinstance(upvotes, str):
+            upvotes = int(upvotes)
+        if isinstance(downvotes, str):
+            downvotes = int(downvotes)
+
+        if existing:
+            old_vote = existing.get("vote_type", "")
+            if old_vote == vote_type:
+                # Retirer le vote
+                self.delete_document("article_votes", vote_doc_id)
+                if vote_type == "up":
+                    upvotes = max(0, upvotes - 1)
+                else:
+                    downvotes = max(0, downvotes - 1)
+            else:
+                # Changer le vote
+                now = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+                self.set_document("article_votes", vote_doc_id, {
+                    "article_id": article_id, "user_uid": user_uid,
+                    "vote_type": vote_type, "created_at": now,
+                })
+                if vote_type == "up":
+                    upvotes += 1
+                    downvotes = max(0, downvotes - 1)
+                else:
+                    downvotes += 1
+                    upvotes = max(0, upvotes - 1)
+        else:
+            # Nouveau vote
+            now = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+            self.set_document("article_votes", vote_doc_id, {
+                "article_id": article_id, "user_uid": user_uid,
+                "vote_type": vote_type, "created_at": now,
+            })
+            if vote_type == "up":
+                upvotes += 1
+            else:
+                downvotes += 1
+
+        self.update_fields("articles", article_id, {"upvotes": upvotes, "downvotes": downvotes})
+        return True, upvotes, downvotes
+
+    def get_user_vote(self, article_id, user_uid):
+        """Retourne le vote de l'utilisateur sur un article ('up', 'down', ou None)."""
+        vote_doc_id = f"{article_id}_{user_uid}"
+        doc = self.get_document("article_votes", vote_doc_id)
+        if doc:
+            return doc.get("vote_type")
+        return None
+
+    # ── Article Comments ──────────────────────────────────────
+
+    def add_comment(self, article_id, data):
+        """Ajoute un commentaire a un article. Retourne le comment_id."""
+        comment_id = self.add_to_subcollection("articles", article_id, "comments", data)
+        if comment_id:
+            # Incrementer le compteur de commentaires
+            article = self.get_article_by_id(article_id)
+            if article:
+                count = article.get("comment_count", 0)
+                if isinstance(count, str):
+                    count = int(count)
+                self.update_fields("articles", article_id, {"comment_count": count + 1})
+        return comment_id
+
+    def get_comments(self, article_id, limit=50):
+        """Recupere les commentaires d'un article."""
+        return self.query_subcollection("articles", article_id, "comments",
+                                        order_by="created_at", order_dir="DESCENDING", limit=limit)
+
+    # ── Chat History (IA) ─────────────────────────────────────
+
+    def get_chat_history(self, user_uid):
+        """Recupere l'historique de chat IA de l'utilisateur."""
+        results = self.query_collection("chat_history", "user_uid", "EQUAL", user_uid, limit=1)
+        return results[0] if results else None
+
+    def save_chat_history(self, user_uid, messages):
+        """Sauvegarde l'historique de chat IA (max 20 messages)."""
+        messages = messages[-20:]  # garder les 20 derniers
+        now = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+
+        existing = self.get_chat_history(user_uid)
+        if existing and existing.get("__id"):
+            return self.update_fields("chat_history", existing["__id"], {
+                "messages": messages, "updated_at": now,
+            })
+        else:
+            return self.add_document("chat_history", {
+                "user_uid": user_uid, "messages": messages,
+                "created_at": now, "updated_at": now,
+            })
+
+    def clear_chat_history(self, user_uid):
+        """Supprime l'historique de chat IA."""
+        existing = self.get_chat_history(user_uid)
+        if existing and existing.get("__id"):
+            return self.delete_document("chat_history", existing["__id"])
+        return True
+
+    # ── Categories ────────────────────────────────────────────
+
+    def get_categories(self):
+        """Recupere toutes les categories."""
+        url = f"{self._fs_url('categories')}"
+        try:
+            resp = requests.get(url, headers=self._get_headers(), timeout=10)
+            if resp.status_code == 200:
+                docs = resp.json().get("documents", [])
+                return [self._parse_doc(doc) for doc in docs]
+        except requests.RequestException:
+            pass
+        return []
+
+    def init_categories(self):
+        """Initialise les categories par defaut si elles n'existent pas."""
+        categories = [
+            {"slug": "technologie", "name": "Technologie & Surveillance", "icon": "eye", "description": "IA, 5G, puces, surveillance de masse...", "color": "#00ff41", "article_count": 0, "order": 1},
+            {"slug": "histoire", "name": "Histoire Secrete", "icon": "scroll", "description": "Evenements historiques revisites, documents declassifies...", "color": "#d4af37", "article_count": 0, "order": 2},
+            {"slug": "politique", "name": "Politique & Pouvoir", "icon": "landmark", "description": "Gouvernements de l'ombre, lobbying, manipulations...", "color": "#dc2626", "article_count": 0, "order": 3},
+            {"slug": "espace", "name": "Espace & Extraterrestres", "icon": "rocket", "description": "OVNI, Zone 51, programmes spatiaux secrets...", "color": "#22d3ee", "article_count": 0, "order": 4},
+            {"slug": "sante", "name": "Sante & Big Pharma", "icon": "flask", "description": "Industrie pharmaceutique, essais cliniques, medecine alternative...", "color": "#a855f7", "article_count": 0, "order": 5},
+            {"slug": "finance", "name": "Finance & Economie", "icon": "banknote", "description": "Banques centrales, cryptomonnaies, systeme monetaire...", "color": "#f59e0b", "article_count": 0, "order": 6},
+            {"slug": "occultisme", "name": "Occultisme & Societes Secretes", "icon": "triangle", "description": "Illuminati, Franc-maconnerie, rituels, symbolisme...", "color": "#ec4899", "article_count": 0, "order": 7},
+            {"slug": "science", "name": "Science Cachee", "icon": "atom", "description": "Technologies supprimees, energie libre, physique alternative...", "color": "#3b82f6", "article_count": 0, "order": 8},
+        ]
+        for cat in categories:
+            existing = self.get_document("categories", cat["slug"])
+            if not existing:
+                self.set_document("categories", cat["slug"], cat)

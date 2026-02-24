@@ -13,7 +13,7 @@ auth_bp = Blueprint("auth", __name__)
 @auth_bp.route("/login", methods=["GET", "POST"])
 def login():
     if current_user.is_authenticated:
-        return redirect(url_for("social.friends"))
+        return redirect(url_for("wiki.home"))
 
     if request.method == "POST":
         email = request.form.get("email", "").strip()
@@ -50,7 +50,7 @@ def login():
             fb.update_online_status(uid, True)
 
             flash(f"Bienvenue, {display_name} !", "success")
-            return redirect(url_for("social.friends"))
+            return redirect(url_for("wiki.home"))
         else:
             # Traduire les erreurs Firebase
             error_msg = _translate_error(message)
@@ -62,7 +62,7 @@ def login():
 @auth_bp.route("/register", methods=["GET", "POST"])
 def register():
     if current_user.is_authenticated:
-        return redirect(url_for("social.friends"))
+        return redirect(url_for("wiki.home"))
 
     if request.method == "POST":
         username = request.form.get("username", "").strip()
@@ -118,7 +118,7 @@ def register():
             login_user(user, remember=True)
 
             flash("Compte cree avec succes !", "success")
-            return redirect(url_for("social.friends"))
+            return redirect(url_for("wiki.home"))
         else:
             error_msg = _translate_error(message)
             flash(error_msg, "error")

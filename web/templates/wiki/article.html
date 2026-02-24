@@ -1,0 +1,122 @@
+{% extends "base_wiki.html" %}
+{% block title %}{{ article.title }}{% endblock %}
+
+{% block content %}
+<article class="max-w-3xl">
+    <!-- Breadcrumb -->
+    <nav class="text-xs text-gray-500 mb-4 flex items-center gap-1.5 flex-wrap">
+        <a href="{{ url_for('wiki.home') }}" class="hover:text-gold-500 transition-colors">Accueil</a>
+        <span>/</span>
+        {% if article.category %}
+        <a href="{{ url_for('wiki.category', slug=article.category) }}" class="hover:text-gold-500 transition-colors">{{ article.category|capitalize }}</a>
+        <span>/</span>
+        {% endif %}
+        <span class="text-gray-400">{{ article.title[:40] }}{% if article.title|length > 40 %}...{% endif %}</span>
+    </nav>
+
+    <!-- Header -->
+    <div class="mb-6">
+        <!-- Badges -->
+        <div class="flex items-center gap-2 mb-3 flex-wrap">
+            {% set cls_map = {'public':'badge-public','confidentiel':'badge-confidentiel','secret':'badge-secret','top-secret':'badge-top-secret'} %}
+            {% set cls_label = {'public':'DECLASSIFIE','confidentiel':'CONFIDENTIEL','secret':'SECRET','top-secret':'TOP SECRET'} %}
+            <span class="badge-classified {{ cls_map.get(article.classification, 'badge-confidentiel') }}">
+                {{ cls_label.get(article.classification, 'CONFIDENTIEL') }}
+            </span>
+            {% if article.credibility %}
+            {% set cred_map = {'documente':'badge-documente','speculatif':'badge-speculatif','fiction':'badge-fiction','demystifie':'badge-demystifie'} %}
+            {% set cred_label = {'documente':'Sources verifiees','speculatif':'Speculatif','fiction':'Recit fictif','demystifie':'Demystifie'} %}
+            <span class="badge-classified {{ cred_map.get(article.credibility, 'badge-speculatif') }}">
+                {{ cred_label.get(article.credibility, article.credibility) }}
+            </span>
+            {% endif %}
+            {% if article.generated_by_ai %}
+            <span class="badge-classified bg-matrix-500/10 text-matrix-500 border border-matrix-500/20">🤖 Genere par IA</span>
+            {% endif %}
+        </div>
+
+        <!-- Title -->
+        <h1 class="font-title text-2xl md:text-3xl text-parchment-100 font-bold leading-tight">{{ article.title }}</h1>
+
+        <!-- Meta -->
+        <div class="flex items-center gap-4 mt-3 text-xs text-gray-500 flex-wrap">
+            <span>Par <span class="text-gray-400">{{ article.author_username }}</span></span>
+            <span>{{ format_date(article.created_at) }}</span>
+            <span>{{ article.views }} vues</span>
+        </div>
+
+        <!-- Tags -->
+        {% if article.tags %}
+        <div class="flex items-center gap-2 mt-3 flex-wrap">
+            {% for tag in article.tags %}
+            <a href="{{ url_for('wiki.tag', tag=tag) }}" class="text-xs bg-abyss-700 text-gray-400 hover:text-matrix-500 px-2 py-0.5 rounded-full border border-gray-700/50 hover:border-matrix-500/30 transition-all">#{{ tag }}</a>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Vote bar -->
+    <div class="flex items-center gap-4 mb-6 py-3 px-4 bg-abyss-800 rounded-xl border border-gold-500/8">
+        <button onclick="voteArticle('{{ article.__id }}', 'up')" class="vote-btn flex items-center gap-1 text-sm {{ 'active-up' if user_vote == 'up' else 'text-gray-500 hover:text-matrix-500' }} transition-colors">
+            <span>▲</span> <span id="upvote-count">{{ article.upvotes or 0 }}</span>
+        </button>
+        <button onclick="voteArticle('{{ article.__id }}', 'down')" class="vote-btn flex items-center gap-1 text-sm {{ 'active-down' if user_vote == 'down' else 'text-gray-500 hover:text-red-400' }} transition-colors">
+            <span>▼</span> <span id="downvote-count">{{ article.downvotes or 0 }}</span>
+        </button>
+        <span class="text-xs text-gray-600">|</span>
+        <span class="text-xs text-gray-500">💬 {{ article.comment_count or 0 }} commentaires</span>
+    </div>
+
+    <!-- Article content -->
+    <div class="article-content mb-8">
+        {{ article.content_html|safe }}
+    </div>
+
+    <!-- Sources -->
+    {% if article.sources %}
+    <div class="mb-8">
+        <h3 class="font-title text-gold-500 text-sm tracking-widest uppercase mb-3">📎 Sources</h3>
+        <div class="space-y-2">
+            {% for source in article.sources %}
+            <div class="bg-abyss-800 rounded-lg px-4 py-3 border-l-2 border-gold-500/30 text-sm">
+                <a href="{{ source.url }}" target="_blank" rel="noopener" class="text-gold-500 hover:text-gold-400 transition-colors">{{ source.title }}</a>
+                {% if source.type %}
+                <span class="text-xs text-gray-600 ml-2">[{{ source.type }}]</span>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="ornament my-8">👁️</div>
+
+    <!-- Comments -->
+    <section id="comments">
+        <h3 class="font-title text-gold-500 text-sm tracking-widest uppercase mb-4">💬 Commentaires ({{ article.comment_count or 0 }})</h3>
+
+        {% if current_user.is_authenticated %}
+        <form onsubmit="addComment(event, '{{ article.__id }}')" class="mb-6">
+            <textarea id="comment-text" rows="3" placeholder="Partagez votre analyse..."
+                      class="w-full bg-abyss-800 border border-gold-500/15 rounded-xl px-4 py-3 text-sm text-parchment-100 placeholder-gray-600 focus:border-gold-500/30 focus:outline-none transition-all resize-none"></textarea>
+            <button type="submit" class="mt-2 bg-gold-500/15 hover:bg-gold-500/25 text-gold-500 px-4 py-2 rounded-lg text-sm border border-gold-500/20 transition-all">
+                Publier
+            </button>
+        </form>
+        {% endif %}
+
+        <div id="comments-list" class="space-y-3">
+            {% for c in comments %}
+            <div class="bg-abyss-800 rounded-xl px-4 py-3 border border-gold-500/5">
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="w-6 h-6 bg-abyss-700 rounded-full flex items-center justify-center text-xs text-gold-500 font-title">{{ c.author_username[:1]|upper }}</span>
+                    <span class="text-sm text-gray-300">{{ c.author_username }}</span>
+                    <span class="text-xs text-gray-600">{{ format_date(c.created_at) }}</span>
+                </div>
+                <p class="text-sm text-gray-400 font-article">{{ c.text }}</p>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+</article>
+{% endblock %}

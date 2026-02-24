@@ -1,0 +1,117 @@
+{% extends "base_wiki.html" %}
+{% block title %}{% if article %}Modifier{% else %}Nouveau dossier{% endif %}{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl">
+    <h1 class="font-title text-gold-500 text-xl mb-6">
+        {% if article %}📝 Modifier le dossier{% else %}📝 Nouveau dossier{% endif %}
+    </h1>
+
+    <form method="POST" action="{{ url_for('wiki.editor') }}" class="space-y-5">
+        {% if article %}
+        <input type="hidden" name="article_id" value="{{ article.__id }}">
+        {% endif %}
+
+        <!-- Title -->
+        <div>
+            <label class="block text-xs text-gray-400 mb-1.5 font-mono uppercase tracking-wider">Titre du dossier</label>
+            <input type="text" name="title" required maxlength="200"
+                   value="{{ article.title if article else '' }}"
+                   placeholder="Ex: Le projet MK-Ultra et le controle mental"
+                   class="w-full bg-abyss-800 border border-gold-500/15 rounded-lg px-4 py-2.5 text-sm text-parchment-100 placeholder-gray-600 focus:border-gold-500/40 focus:outline-none transition-all">
+        </div>
+
+        <!-- Category + Classification row -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+                <label class="block text-xs text-gray-400 mb-1.5 font-mono uppercase tracking-wider">Categorie</label>
+                <select name="category" class="w-full bg-abyss-800 border border-gold-500/15 rounded-lg px-4 py-2.5 text-sm text-parchment-100 focus:border-gold-500/40 focus:outline-none transition-all">
+                    <option value="">-- Choisir --</option>
+                    {% for val, label in [("technologie","Technologie"),("histoire","Histoire Secrete"),("politique","Politique"),("espace","Espace & ET"),("sante","Sante"),("finance","Finance"),("occultisme","Occultisme"),("science","Science Cachee")] %}
+                    <option value="{{ val }}" {{ 'selected' if article and article.category == val }}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs text-gray-400 mb-1.5 font-mono uppercase tracking-wider">Classification</label>
+                <select name="classification" class="w-full bg-abyss-800 border border-gold-500/15 rounded-lg px-4 py-2.5 text-sm text-parchment-100 focus:border-gold-500/40 focus:outline-none transition-all">
+                    {% for val, label in [("public","Declassifie"),("confidentiel","Confidentiel"),("secret","Secret"),("top-secret","Top Secret")] %}
+                    <option value="{{ val }}" {{ 'selected' if article and article.classification == val }}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <!-- Credibility -->
+        <div>
+            <label class="block text-xs text-gray-400 mb-1.5 font-mono uppercase tracking-wider">Credibilite</label>
+            <select name="credibility" class="w-full bg-abyss-800 border border-gold-500/15 rounded-lg px-4 py-2.5 text-sm text-parchment-100 focus:border-gold-500/40 focus:outline-none transition-all">
+                {% for val, label in [("documente","Documente - Sources verifiees"),("speculatif","Speculatif - Theorie en investigation"),("fiction","Fiction - Recit speculatif"),("demystifie","Demystifie - Theorie refutee")] %}
+                <option value="{{ val }}" {{ 'selected' if article and article.credibility == val }}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Tags -->
+        <div>
+            <label class="block text-xs text-gray-400 mb-1.5 font-mono uppercase tracking-wider">Tags (separes par virgules)</label>
+            <input type="text" name="tags" maxlength="500"
+                   value="{{ article.tags|join(', ') if article and article.tags else '' }}"
+                   placeholder="illuminati, mk-ultra, cia, controle-mental"
+                   class="w-full bg-abyss-800 border border-gold-500/15 rounded-lg px-4 py-2.5 text-sm text-parchment-100 placeholder-gray-600 focus:border-gold-500/40 focus:outline-none transition-all">
+        </div>
+
+        <!-- Content (Markdown) -->
+        <div>
+            <div class="flex items-center gap-4 mb-2">
+                <label class="text-xs text-gray-400 font-mono uppercase tracking-wider">Contenu (Markdown)</label>
+                <button type="button" onclick="togglePreview()" class="text-xs text-gold-500 hover:text-gold-400 transition-colors">
+                    Basculer apercu
+                </button>
+            </div>
+            <textarea name="content" id="editor-content" rows="20"
+                      placeholder="## Introduction&#10;&#10;Ecrivez votre article en Markdown..."
+                      class="w-full bg-abyss-800 border border-gold-500/15 rounded-xl px-4 py-3 text-sm text-parchment-100 placeholder-gray-600 focus:border-gold-500/30 focus:outline-none transition-all resize-y font-mono">{{ article.content if article else '' }}</textarea>
+            <div id="editor-preview" class="hidden article-content bg-abyss-800 border border-gold-500/15 rounded-xl px-6 py-4 min-h-[200px]"></div>
+        </div>
+
+        <!-- Submit -->
+        <div class="flex gap-3">
+            <button type="submit" name="status" value="published"
+                    class="bg-gold-500/15 hover:bg-gold-500/25 text-gold-500 px-6 py-2.5 rounded-lg border border-gold-500/20 font-title text-sm transition-all">
+                Publier
+            </button>
+            <button type="submit" name="status" value="draft"
+                    class="bg-abyss-700 hover:bg-abyss-600 text-gray-400 px-6 py-2.5 rounded-lg border border-gray-700 text-sm transition-all">
+                Sauvegarder brouillon
+            </button>
+        </div>
+    </form>
+</div>
+
+{% block scripts %}
+<script>
+let previewVisible = false;
+function togglePreview() {
+    const textarea = document.getElementById('editor-content');
+    const preview = document.getElementById('editor-preview');
+    previewVisible = !previewVisible;
+    if (previewVisible) {
+        // Simple markdown to HTML (basic)
+        let text = textarea.value;
+        text = text.replace(/### (.*)/g, '<h3>$1</h3>');
+        text = text.replace(/## (.*)/g, '<h2>$1</h2>');
+        text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        text = text.replace(/\*(.*?)\*/g, '<em>$1</em>');
+        text = text.replace(/\n/g, '<br>');
+        preview.innerHTML = text;
+        textarea.classList.add('hidden');
+        preview.classList.remove('hidden');
+    } else {
+        textarea.classList.remove('hidden');
+        preview.classList.add('hidden');
+    }
+}
+</script>
+{% endblock %}
+{% endblock %}

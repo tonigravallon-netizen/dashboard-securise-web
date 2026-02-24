@@ -1,0 +1,31 @@
+{% extends "base_wiki.html" %}
+{% block title %}Recherche{% if query %} : {{ query }}{% endif %}{% endblock %}
+
+{% block content %}
+<div>
+    <h1 class="font-title text-gold-500 text-xl mb-2">🔍 Recherche</h1>
+    {% if query %}
+    <p class="text-sm text-gray-500 mb-6">Resultats pour "<span class="text-gray-300">{{ query }}</span>"</p>
+    {% endif %}
+
+    {% if articles %}
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {% from "components/article_card.html" import render_card %}
+        {% for art in articles %}
+        {{ render_card(art) }}
+        {% endfor %}
+    </div>
+    {% elif query %}
+    <div class="text-center py-12">
+        <span class="text-4xl mb-3 block">🔍</span>
+        <p class="text-gray-500">Aucun dossier trouve pour "{{ query }}"</p>
+        <p class="text-xs text-gray-600 mt-2">Essayez avec d'autres mots-cles ou explorez les categories</p>
+    </div>
+    {% else %}
+    <div class="text-center py-12">
+        <span class="text-4xl mb-3 block">📜</span>
+        <p class="text-gray-500">Entrez un terme de recherche pour explorer les archives</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

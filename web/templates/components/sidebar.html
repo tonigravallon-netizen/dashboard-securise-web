@@ -1,0 +1,46 @@
+<!-- Sidebar categories -->
+<div class="sticky top-20 space-y-4">
+    <!-- Categories -->
+    <div>
+        <h3 class="font-title text-gold-500 text-xs tracking-widest uppercase mb-3">Categories</h3>
+        <div class="space-y-1">
+            {% set categories_list = [
+                ("technologie", "Technologie", "👁️", "#00ff41"),
+                ("histoire", "Histoire Secrete", "📜", "#d4af37"),
+                ("politique", "Politique & Pouvoir", "🏛️", "#dc2626"),
+                ("espace", "Espace & ET", "🚀", "#22d3ee"),
+                ("sante", "Sante", "🧪", "#a855f7"),
+                ("finance", "Finance", "💰", "#f59e0b"),
+                ("occultisme", "Occultisme", "🔺", "#ec4899"),
+                ("science", "Science Cachee", "⚛️", "#3b82f6"),
+            ] %}
+            {% for slug, name, icon, color in categories_list %}
+            <a href="{{ url_for('wiki.category', slug=slug) }}"
+               class="sidebar-link flex items-center gap-2 px-3 py-2 rounded-lg text-sm border border-transparent
+                      {% if request.view_args.get('slug') == slug %}active{% else %}text-gray-400{% endif %}"
+               style="--cat-color: {{ color }}20; --cat-glow: {{ color }}10;">
+                <span class="text-sm">{{ icon }}</span>
+                <span>{{ name }}</span>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Ornament -->
+    <div class="ornament">👁️</div>
+
+    <!-- Quick links -->
+    {% if current_user.is_authenticated %}
+    <div>
+        <h3 class="font-title text-gold-500 text-xs tracking-widest uppercase mb-3">Mon espace</h3>
+        <div class="space-y-1">
+            <a href="{{ url_for('wiki.my_articles') }}" class="sidebar-link flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-gray-400 border border-transparent">
+                <span>📝</span><span>Mes articles</span>
+            </a>
+            <a href="{{ url_for('wiki.generate') }}" class="sidebar-link flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-gray-400 border border-transparent">
+                <span>🤖</span><span>Generer (IA)</span>
+            </a>
+        </div>
+    </div>
+    {% endif %}
+</div>

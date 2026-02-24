@@ -27,19 +27,15 @@ def create_app():
     from .auth_routes import auth_bp
     from .social_routes import social_bp
     from .api_routes import api_bp
+    from .wiki_routes import wiki_bp
+    from .api_wiki_routes import api_wiki_bp
+    from .chat_routes import chat_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(social_bp, url_prefix="/social")
     app.register_blueprint(api_bp, url_prefix="/api")
-
-    # --- Route racine ---
-    @app.route("/")
-    def index():
-        from flask_login import current_user
-        from flask import redirect, url_for
-
-        if current_user.is_authenticated:
-            return redirect(url_for("social.friends"))
-        return redirect(url_for("auth.login"))
+    app.register_blueprint(wiki_bp)
+    app.register_blueprint(api_wiki_bp, url_prefix="/api/wiki")
+    app.register_blueprint(chat_bp, url_prefix="/api/chat")
 
     return app

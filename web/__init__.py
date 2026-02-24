@@ -30,6 +30,7 @@ def create_app():
     from .wiki_routes import wiki_bp
     from .api_wiki_routes import api_wiki_bp
     from .chat_routes import chat_bp
+    from .seed_routes import seed_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(social_bp, url_prefix="/social")
@@ -37,5 +38,6 @@ def create_app():
     app.register_blueprint(wiki_bp)
     app.register_blueprint(api_wiki_bp, url_prefix="/api/wiki")
     app.register_blueprint(chat_bp, url_prefix="/api/chat")
+    app.register_blueprint(seed_bp)
 
     return app

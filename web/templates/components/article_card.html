@@ -33,12 +33,26 @@
 } %}
 <a href="{{ url_for('wiki.article', slug=article.slug) }}"
    class="article-card block bg-abyss-800 rounded-xl border border-gold-500/8 overflow-hidden group">
-    <div class="p-5">
-        <!-- Badges -->
-        <div class="flex items-center gap-2 mb-3 flex-wrap">
+    {% if article.image_url %}
+    <div class="h-40 overflow-hidden relative">
+        <img src="{{ article.image_url }}" alt="" class="w-full h-full object-cover opacity-70 group-hover:opacity-90 group-hover:scale-105 transition-all duration-500">
+        <div class="absolute inset-0 bg-gradient-to-t from-abyss-800 via-transparent to-transparent"></div>
+        <!-- Classification badge on image -->
+        <div class="absolute top-3 left-3">
             <span class="badge-classified {{ classification_classes.get(article.classification, 'badge-confidentiel') }}">
                 {{ classification_labels.get(article.classification, 'CONFIDENTIEL') }}
             </span>
+        </div>
+    </div>
+    {% endif %}
+    <div class="p-5">
+        <!-- Badges (only if no image, otherwise classification is on image) -->
+        <div class="flex items-center gap-2 mb-3 flex-wrap">
+            {% if not article.image_url %}
+            <span class="badge-classified {{ classification_classes.get(article.classification, 'badge-confidentiel') }}">
+                {{ classification_labels.get(article.classification, 'CONFIDENTIEL') }}
+            </span>
+            {% endif %}
             {% if article.category %}
             <span class="badge-category" style="background: {{ category_colors.get(article.category, '#d4af37') }}15; color: {{ category_colors.get(article.category, '#d4af37') }};">
                 {{ category_icons.get(article.category, '📄') }} {{ article.category|capitalize }}

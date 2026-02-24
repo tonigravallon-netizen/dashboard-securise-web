@@ -3,39 +3,62 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>{% block title %}Dashboard Securise{% endblock %}</title>
+    <title>{% block title %}ARCANA WIKI{% endblock %}</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700;800;900&family=Crimson+Text:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <script>
         tailwind.config = {
             darkMode: 'class',
             theme: {
                 extend: {
                     colors: {
-                        dark: {
-                            900: '#0f172a',
-                            800: '#1e293b',
-                            700: '#334155',
-                            600: '#475569',
+                        abyss: {
+                            900: '#0a0a0f',
+                            800: '#12121a',
+                            700: '#1a1a25',
+                            600: '#252535',
+                        },
+                        gold: {
+                            500: '#d4af37',
+                            400: '#e5c453',
+                            300: '#f0d878',
+                        },
+                        matrix: {
+                            500: '#00ff41',
+                            400: '#33ff6b',
+                        },
+                        parchment: {
+                            100: '#f5f0e6',
+                            200: '#e8dcc8',
                         }
+                    },
+                    fontFamily: {
+                        'title': ['Cinzel', 'serif'],
+                        'body': ['Crimson Text', 'serif'],
+                        'ui': ['Inter', 'sans-serif'],
+                        'mono': ['JetBrains Mono', 'monospace'],
                     }
                 }
             }
         }
     </script>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛡️</text></svg>">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/conspiracy.css') }}">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👁️</text></svg>">
 </head>
-<body class="bg-dark-900 text-slate-100 min-h-screen flex flex-col">
+<body class="bg-abyss-900 text-parchment-100 min-h-screen flex flex-col font-body">
     {% if current_user.is_authenticated %}
     <!-- Header Desktop -->
-    <header class="hidden md:flex items-center justify-between px-6 py-3 bg-dark-800 border-b border-slate-700/50 sticky top-0 z-40">
+    <header class="hidden md:flex items-center justify-between px-6 py-3 bg-abyss-800 border-b border-gold-500/10 sticky top-0 z-40">
         <div class="flex items-center gap-3">
-            <span class="text-2xl">🛡️</span>
-            <h1 class="text-lg font-bold text-blue-400">Dashboard Securise</h1>
+            <a href="{{ url_for('wiki.home') }}" class="flex items-center gap-3 hover:opacity-80 transition-opacity">
+                <span class="text-2xl">👁️</span>
+                <h1 class="text-lg font-bold text-gold-500 font-title tracking-wider">ARCANA WIKI</h1>
+            </a>
         </div>
         <div class="flex items-center gap-4">
-            <span class="text-sm text-slate-400">{{ current_user.display_name }}</span>
-            <a href="{{ url_for('auth.logout') }}" class="text-sm text-red-400 hover:text-red-300 transition-colors">
+            <span class="text-sm text-parchment-200/60 font-ui">{{ current_user.display_name }}</span>
+            <a href="{{ url_for('auth.logout') }}" class="text-sm text-red-400 hover:text-red-300 transition-colors font-ui">
                 Deconnexion
             </a>
         </div>
@@ -44,28 +67,36 @@
     <!-- Layout Desktop : Sidebar + Content -->
     <div class="flex flex-1 overflow-hidden">
         <!-- Sidebar Desktop -->
-        <nav class="hidden md:flex flex-col w-56 bg-dark-800 border-r border-slate-700/50 p-4 gap-1">
+        <nav class="hidden md:flex flex-col w-56 bg-abyss-800 border-r border-gold-500/10 p-4 gap-1">
+            <div class="mb-2 px-3 py-1">
+                <span class="text-[10px] uppercase tracking-widest text-gold-500/50 font-ui font-semibold">Navigation</span>
+            </div>
+            <a href="{{ url_for('wiki.home') }}"
+               class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-200 font-ui {% if request.endpoint and request.endpoint.startswith('wiki.') %}bg-gold-500/20 text-gold-500{% else %}text-parchment-200/70 hover:bg-abyss-700/50 hover:text-gold-400{% endif %}">
+                <span class="text-lg">📜</span>
+                <span>Archives</span>
+            </a>
             <a href="{{ url_for('social.friends') }}"
-               class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-200 {% if request.endpoint == 'social.friends' %}bg-blue-500/20 text-blue-400{% else %}text-slate-300 hover:bg-slate-700/50{% endif %}">
+               class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-200 font-ui {% if request.endpoint == 'social.friends' %}bg-gold-500/20 text-gold-500{% else %}text-parchment-200/70 hover:bg-abyss-700/50 hover:text-gold-400{% endif %}">
                 <span class="text-lg">👥</span>
                 <span>Amis</span>
                 <span id="badge-friends-desktop" class="ml-auto hidden bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center"></span>
             </a>
             <a href="{{ url_for('social.messages') }}"
-               class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-200 {% if request.endpoint == 'social.messages' %}bg-blue-500/20 text-blue-400{% else %}text-slate-300 hover:bg-slate-700/50{% endif %}">
+               class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-200 font-ui {% if request.endpoint == 'social.messages' %}bg-gold-500/20 text-gold-500{% else %}text-parchment-200/70 hover:bg-abyss-700/50 hover:text-gold-400{% endif %}">
                 <span class="text-lg">💬</span>
                 <span>Messages</span>
                 <span id="badge-messages-desktop" class="ml-auto hidden bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center"></span>
             </a>
             <a href="{{ url_for('social.rdv') }}"
-               class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-200 {% if request.endpoint == 'social.rdv' %}bg-blue-500/20 text-blue-400{% else %}text-slate-300 hover:bg-slate-700/50{% endif %}">
+               class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-200 font-ui {% if request.endpoint == 'social.rdv' %}bg-gold-500/20 text-gold-500{% else %}text-parchment-200/70 hover:bg-abyss-700/50 hover:text-gold-400{% endif %}">
                 <span class="text-lg">📅</span>
                 <span>Rendez-vous</span>
                 <span id="badge-rdv-desktop" class="ml-auto hidden bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center"></span>
             </a>
             <div class="flex-1"></div>
-            <div class="border-t border-slate-700/50 pt-3 mt-3">
-                <a href="{{ url_for('auth.logout') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-red-400 hover:bg-red-500/10 transition-all duration-200">
+            <div class="border-t border-gold-500/10 pt-3 mt-3">
+                <a href="{{ url_for('auth.logout') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-red-400 hover:bg-red-500/10 transition-all duration-200 font-ui">
                     <span class="text-lg">🚪</span>
                     <span>Deconnexion</span>
                 </a>
@@ -79,11 +110,11 @@
             {% if messages %}
             <div class="p-4 space-y-2">
                 {% for category, message in messages %}
-                <div class="flash-msg px-4 py-3 rounded-lg text-sm border
+                <div class="flash-msg px-4 py-3 rounded-lg text-sm border font-ui
                     {% if category == 'error' %}bg-red-500/10 border-red-500/30 text-red-400
-                    {% elif category == 'success' %}bg-green-500/10 border-green-500/30 text-green-400
-                    {% elif category == 'warning' %}bg-yellow-500/10 border-yellow-500/30 text-yellow-400
-                    {% else %}bg-blue-500/10 border-blue-500/30 text-blue-400{% endif %}">
+                    {% elif category == 'success' %}bg-matrix-500/10 border-matrix-500/30 text-matrix-500
+                    {% elif category == 'warning' %}bg-gold-500/10 border-gold-500/30 text-gold-400
+                    {% else %}bg-gold-500/10 border-gold-500/30 text-gold-500{% endif %}">
                     {{ message }}
                 </div>
                 {% endfor %}
@@ -96,11 +127,17 @@
     </div>
 
     <!-- Navigation Mobile Bottom -->
-    <nav class="md:hidden fixed bottom-0 inset-x-0 bg-dark-800 border-t border-slate-700/50 z-50 safe-bottom">
+    <nav class="md:hidden fixed bottom-0 inset-x-0 bg-abyss-800 border-t border-gold-500/10 z-50 safe-bottom">
         <div class="flex justify-around items-center h-16">
+            <a href="{{ url_for('wiki.home') }}"
+               class="nav-mobile flex flex-col items-center justify-center gap-0.5 py-1 px-2 rounded-lg transition-all font-ui
+               {% if request.endpoint and request.endpoint.startswith('wiki.') %}text-gold-500{% else %}text-parchment-200/40{% endif %}">
+                <span class="text-xl">📜</span>
+                <span class="text-[10px] font-medium">Archives</span>
+            </a>
             <a href="{{ url_for('social.friends') }}"
-               class="nav-mobile flex flex-col items-center justify-center gap-0.5 py-1 px-3 rounded-lg transition-all
-               {% if request.endpoint == 'social.friends' %}text-blue-400{% else %}text-slate-400{% endif %}">
+               class="nav-mobile flex flex-col items-center justify-center gap-0.5 py-1 px-2 rounded-lg transition-all font-ui
+               {% if request.endpoint == 'social.friends' %}text-gold-500{% else %}text-parchment-200/40{% endif %}">
                 <span class="text-xl relative">
                     👥
                     <span id="badge-friends-mobile" class="hidden absolute -top-1 -right-2 bg-red-500 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center"></span>
@@ -108,8 +145,8 @@
                 <span class="text-[10px] font-medium">Amis</span>
             </a>
             <a href="{{ url_for('social.messages') }}"
-               class="nav-mobile flex flex-col items-center justify-center gap-0.5 py-1 px-3 rounded-lg transition-all
-               {% if request.endpoint == 'social.messages' %}text-blue-400{% else %}text-slate-400{% endif %}">
+               class="nav-mobile flex flex-col items-center justify-center gap-0.5 py-1 px-2 rounded-lg transition-all font-ui
+               {% if request.endpoint == 'social.messages' %}text-gold-500{% else %}text-parchment-200/40{% endif %}">
                 <span class="text-xl relative">
                     💬
                     <span id="badge-messages-mobile" class="hidden absolute -top-1 -right-2 bg-red-500 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center"></span>
@@ -117,8 +154,8 @@
                 <span class="text-[10px] font-medium">Messages</span>
             </a>
             <a href="{{ url_for('social.rdv') }}"
-               class="nav-mobile flex flex-col items-center justify-center gap-0.5 py-1 px-3 rounded-lg transition-all
-               {% if request.endpoint == 'social.rdv' %}text-blue-400{% else %}text-slate-400{% endif %}">
+               class="nav-mobile flex flex-col items-center justify-center gap-0.5 py-1 px-2 rounded-lg transition-all font-ui
+               {% if request.endpoint == 'social.rdv' %}text-gold-500{% else %}text-parchment-200/40{% endif %}">
                 <span class="text-xl relative">
                     📅
                     <span id="badge-rdv-mobile" class="hidden absolute -top-1 -right-2 bg-red-500 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center"></span>
@@ -126,7 +163,7 @@
                 <span class="text-[10px] font-medium">RDV</span>
             </a>
             <a href="{{ url_for('auth.logout') }}"
-               class="nav-mobile flex flex-col items-center justify-center gap-0.5 py-1 px-3 rounded-lg text-slate-400">
+               class="nav-mobile flex flex-col items-center justify-center gap-0.5 py-1 px-2 rounded-lg text-parchment-200/40 font-ui">
                 <span class="text-xl">🚪</span>
                 <span class="text-[10px] font-medium">Sortir</span>
             </a>
@@ -139,10 +176,10 @@
         {% if messages %}
         <div class="fixed top-4 inset-x-4 z-50 space-y-2 max-w-md mx-auto">
             {% for category, message in messages %}
-            <div class="flash-msg px-4 py-3 rounded-lg text-sm border
+            <div class="flash-msg px-4 py-3 rounded-lg text-sm border font-ui
                 {% if category == 'error' %}bg-red-500/10 border-red-500/30 text-red-400
-                {% elif category == 'success' %}bg-green-500/10 border-green-500/30 text-green-400
-                {% else %}bg-blue-500/10 border-blue-500/30 text-blue-400{% endif %}">
+                {% elif category == 'success' %}bg-matrix-500/10 border-matrix-500/30 text-matrix-500
+                {% else %}bg-gold-500/10 border-gold-500/30 text-gold-500{% endif %}">
                 {{ message }}
             </div>
             {% endfor %}

@@ -1065,40 +1065,61 @@ IMAGE_MAP = {
 @seed_bp.route("/admin/fix-wiki")
 @login_required
 def fix_wiki():
-    """Supprime les doublons et corrige les URLs d'images."""
+    """Supprime les doublons et corrige les URLs d'images. Retourne JSON debug."""
+    import requests as req
+    from flask import jsonify
+
     fb = get_firebase()
 
-    # Requete sans order_by pour eviter le besoin d'index composite Firestore
+    # Methode directe REST API - lister TOUS les documents de la collection articles
+    project_id = fb.project_id if hasattr(fb, 'project_id') else None
+    headers = fb._get_headers()
+
+    # Essai 1 : query_collection sans order_by
     all_articles = fb.query_collection("articles", "status", "EQUAL", "published",
                                         order_by="", limit=100)
+
+    # Essai 2 : si vide, tenter une requete directe REST list
     if not all_articles:
-        flash("Aucun article trouve dans Firestore.", "warning")
-        return redirect(url_for("wiki.home"))
+        try:
+            list_url = fb._fs_url("articles")
+            resp = req.get(list_url, headers=headers, params={"pageSize": 100}, timeout=15)
+            if resp.status_code == 200:
+                data = resp.json()
+                docs = data.get("documents", [])
+                all_articles = [fb._parse_doc(d) for d in docs]
+        except Exception:
+            pass
+
+    if not all_articles:
+        return jsonify({"error": "Aucun article trouve", "method": "both_failed"}), 404
 
     # Deduplication par slug - garder le premier, supprimer les suivants
     seen_slugs = {}
     duplicates_removed = 0
+    deleted_ids = []
     for art in all_articles:
         slug = art.get("slug", "")
         art_id = art.get("__id", "")
         if not slug or not art_id:
             continue
         if slug in seen_slugs:
-            # Doublon - supprimer
-            fb.delete_document("articles", art_id)
-            duplicates_removed += 1
+            ok = fb.delete_document("articles", art_id)
+            if ok:
+                duplicates_removed += 1
+                deleted_ids.append(art_id)
         else:
             seen_slugs[slug] = art_id
 
     # Corriger les images
     images_fixed = 0
+    fixed_details = []
     for slug, art_id in seen_slugs.items():
         new_img = None
-        for key, url in IMAGE_MAP.items():
+        for key, img_url in IMAGE_MAP.items():
             if key in slug:
-                new_img = url
+                new_img = img_url
                 break
-        # Fallbacks plus specifiques
         if not new_img:
             if "email" in slug or "document" in slug:
                 new_img = IMAGE_MAP["emails"]
@@ -1106,8 +1127,16 @@ def fix_wiki():
                 new_img = IMAGE_MAP["epstein"]
 
         if new_img:
-            fb.update_article(art_id, {"image_url": new_img})
-            images_fixed += 1
+            ok = fb.update_article(art_id, {"image_url": new_img})
+            if ok:
+                images_fixed += 1
+                fixed_details.append({"slug": slug, "image": new_img})
 
-    flash(f"Nettoyage termine : {duplicates_removed} doublons supprimes, {images_fixed} images corrigees.", "success")
-    return redirect(url_for("wiki.home"))
+    return jsonify({
+        "total_found": len(all_articles),
+        "unique_slugs": list(seen_slugs.keys()),
+        "duplicates_removed": duplicates_removed,
+        "deleted_ids": deleted_ids,
+        "images_fixed": images_fixed,
+        "fixed_details": fixed_details,
+    })

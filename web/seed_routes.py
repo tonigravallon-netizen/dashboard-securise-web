@@ -497,7 +497,7 @@ Pourquoi envoyer une armee quand on peut detruire l'economie d'un pays en provoq
     for i, art in enumerate(articles):
         art["created_at"] = timestamps[i]
         art["updated_at"] = timestamps[i]
-        art["author_uid"] = current_user.firebase_uid
+        art["author_uid"] = current_user.uid
         art["author_username"] = author_username
         art["status"] = "published"
         art["comment_count"] = 0

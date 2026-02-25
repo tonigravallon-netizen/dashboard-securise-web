@@ -189,7 +189,7 @@ Plusieurs temoins et lanceurs d'alerte evoquent des **rituels** sur l'ile impliq
 
 Derriere chaque revolution, chaque guerre, chaque changement de regime se cache la main invisible de la {g("Franc-Maconnerie", "Ordre initiatique et fraternel fonde officiellement en 1717 a Londres. Organise en loges, utilise des rituels et symboles lies a l'architecture. Compte des millions de membres dans le monde.")}. De la Revolution francaise a la creation des Etats-Unis, leurs symboles sont partout - si vous savez ou regarder.
 
-{article_img("https://images.unsplash.com/photo-1572883454114-efb8df45c926?w=800&h=450&fit=crop", "Symboles maconniques graves dans la pierre - l'equerre et le compas, emblemes universels de l'Ordre")}
+{article_img("https://images.unsplash.com/photo-1519681393784-d120267933ba?w=800&h=450&fit=crop", "Symboles maconniques graves dans la pierre - l'equerre et le compas, emblemes universels de l'Ordre")}
 
 ### Les symboles qui vous entourent
 
@@ -216,7 +216,7 @@ Presidents, juges de la Cour Supreme, generaux, PDGs - la proportion de Francs-M
         "classification": "secret",
         "credibility": "speculatif",
         "featured": True,
-        "image_url": "https://images.unsplash.com/photo-1572883454114-efb8df45c926?w=640&h=400&fit=crop",
+        "image_url": "https://images.unsplash.com/photo-1519681393784-d120267933ba?w=640&h=400&fit=crop",
         "views": random.randint(3000, 7000),
         "upvotes": random.randint(200, 500),
         "downvotes": random.randint(10, 40),
@@ -406,7 +406,7 @@ MK-Ultra est officiellement termine. Mais ses successeurs - {g("Project Monarch"
 
 Chaque annee, environ 130 des personnes les plus puissantes de la planete se reunissent dans un hotel de luxe barre par la police et les services secrets. **Aucune couverture mediatique**. Aucun compte-rendu officiel. Aucune transparence. C'est le {g("Groupe Bilderberg", "Conference annuelle fondee en 1954 a l'hotel Bilderberg aux Pays-Bas. Reunit environ 130 leaders politiques, financiers, militaires et mediatiques d'Europe et d'Amerique du Nord.")}.
 
-{article_img("https://images.unsplash.com/photo-1577415124269-fc1140815e3d?w=800&h=450&fit=crop", "Les reunions Bilderberg se deroulent dans des hotels de luxe isoles, sous protection militaire")}
+{article_img("https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&h=450&fit=crop", "Les reunions Bilderberg se deroulent dans des hotels de luxe isoles, sous protection militaire")}
 
 ### Qui participe ?
 
@@ -439,7 +439,7 @@ Quand Bilderberg s'est avere insuffisant pour inclure l'Asie, David Rockefeller 
         "classification": "secret",
         "credibility": "documente",
         "featured": False,
-        "image_url": "https://images.unsplash.com/photo-1577415124269-fc1140815e3d?w=640&h=400&fit=crop",
+        "image_url": "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=640&h=400&fit=crop",
         "views": random.randint(3000, 7000),
         "upvotes": random.randint(150, 400),
         "downvotes": random.randint(8, 30),
@@ -453,7 +453,7 @@ Quand Bilderberg s'est avere insuffisant pour inclure l'Asie, David Rockefeller 
 
 Au coeur de l'Alaska, 180 antennes geantes pointent vers le ciel. C'est {g("HAARP", "High-frequency Active Auroral Research Program. Installation militaire americaine en Alaska composee de 180 antennes haute frequence. Capable d'emettre 3.6 megawatts dans l'ionosphere.")} - le High-frequency Active Auroral Research Program. Officiellement : "recherche atmospherique". En realite : l'**arme climatique la plus puissante** jamais construite.
 
-{article_img("https://images.unsplash.com/photo-1527482937786-6a7c43f73124?w=800&h=450&fit=crop", "Installation HAARP en Alaska - 180 antennes capables de modifier l'ionosphere terrestre")}
+{article_img("https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=800&h=450&fit=crop", "Installation HAARP en Alaska - 180 antennes capables de modifier l'ionosphere terrestre")}
 
 ### Comment ca marche
 
@@ -487,7 +487,7 @@ Pourquoi envoyer une armee quand on peut detruire l'economie d'un pays en provoq
         "classification": "confidentiel",
         "credibility": "speculatif",
         "featured": False,
-        "image_url": "https://images.unsplash.com/photo-1527482937786-6a7c43f73124?w=640&h=400&fit=crop",
+        "image_url": "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=640&h=400&fit=crop",
         "views": random.randint(3000, 7000),
         "upvotes": random.randint(150, 400),
         "downvotes": random.randint(10, 35),
@@ -709,3 +709,78 @@ def fix_wiki():
         "unique_slugs": list(seen_slugs.keys()),
         "duplicates_removed": duplicates_removed,
     })
+
+
+# ── Mapping des anciennes URLs cassees vers nouvelles ──
+IMAGE_FIXES = {
+    "photo-1572883454114-efb8df45c926": "photo-1519681393784-d120267933ba",
+    "photo-1527482937786-6a7c43f73124": "photo-1470071459604-3b5ec3a7fe05",
+    "photo-1577415124269-fc1140815e3d": "photo-1486406146926-c627a92ad1ab",
+}
+
+
+@seed_bp.route("/admin/fix-images")
+@login_required
+def fix_images():
+    """Corrige les URLs d'images cassees dans les articles existants."""
+    import traceback
+
+    try:
+        fb = get_firebase()
+
+        all_articles = fb.query_collection("articles", "status", "EQUAL", "published",
+                                            order_by="", limit=100)
+        if not all_articles:
+            return jsonify({"error": "Aucun article"}), 404
+
+        fixed = 0
+        details = []
+
+        for art in all_articles:
+            art_id = art.get("__id", "")
+            if not art_id:
+                continue
+
+            updates = {}
+            slug = art.get("slug", "")
+
+            # Fix image_url
+            img = art.get("image_url", "")
+            for old_id, new_id in IMAGE_FIXES.items():
+                if old_id in img:
+                    updates["image_url"] = img.replace(old_id, new_id)
+                    break
+
+            # Fix content_html (inline images)
+            html = art.get("content_html", "")
+            changed_html = html
+            for old_id, new_id in IMAGE_FIXES.items():
+                changed_html = changed_html.replace(old_id, new_id)
+            if changed_html != html:
+                updates["content_html"] = changed_html
+
+            # Fix content (markdown source)
+            md = art.get("content", "")
+            changed_md = md
+            for old_id, new_id in IMAGE_FIXES.items():
+                changed_md = changed_md.replace(old_id, new_id)
+            if changed_md != md:
+                updates["content"] = changed_md
+
+            if updates:
+                fb.update_article(art_id, updates)
+                fixed += 1
+                details.append({"slug": slug, "fields": list(updates.keys())})
+
+        return jsonify({
+            "status": "ok",
+            "fixed": fixed,
+            "details": details,
+            "total_checked": len(all_articles)
+        })
+
+    except Exception as e:
+        return jsonify({
+            "error": str(e),
+            "traceback": traceback.format_exc()
+        }), 500

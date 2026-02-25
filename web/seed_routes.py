@@ -596,51 +596,74 @@ def seed_wiki():
 @login_required
 def reseed_wiki():
     """Supprime tous les articles et re-seed avec le nouveau contenu."""
-    fb = get_firebase()
+    import traceback
 
-    # Supprimer tous les articles existants
-    all_articles = fb.query_collection("articles", "status", "EQUAL", "published",
-                                        order_by="", limit=100)
-    deleted = 0
-    for art in all_articles:
-        art_id = art.get("__id", "")
-        if art_id:
-            fb.delete_document("articles", art_id)
-            deleted += 1
+    try:
+        fb = get_firebase()
 
-    # Also delete drafts
-    drafts = fb.query_collection("articles", "status", "EQUAL", "draft",
-                                  order_by="", limit=100)
-    for art in drafts:
-        art_id = art.get("__id", "")
-        if art_id:
-            fb.delete_document("articles", art_id)
-            deleted += 1
+        # Supprimer tous les articles existants
+        all_articles = fb.query_collection("articles", "status", "EQUAL", "published",
+                                            order_by="", limit=100)
+        deleted = 0
+        for art in all_articles:
+            art_id = art.get("__id", "")
+            if art_id:
+                fb.delete_document("articles", art_id)
+                deleted += 1
 
-    # Re-seed
-    articles = get_articles(current_user.username or current_user.display_name or "ARCANA")
+        # Also delete drafts
+        drafts = fb.query_collection("articles", "status", "EQUAL", "draft",
+                                      order_by="", limit=100)
+        for art in drafts:
+            art_id = art.get("__id", "")
+            if art_id:
+                fb.delete_document("articles", art_id)
+                deleted += 1
 
-    created = 0
-    for art in articles:
-        content_md = art.pop("content")
-        content_html = render_markdown(content_md)
-        art["content"] = content_md
-        art["content_html"] = content_html
-        art["excerpt"] = truncate_text(content_md.replace("#", "").replace("*", "").strip(), 200)
+        # Re-seed
+        username = "ARCANA"
+        try:
+            username = current_user.username or current_user.display_name or "ARCANA"
+        except Exception:
+            pass
 
-        for key, sources in SOURCES_MAP.items():
-            if key in art["slug"]:
-                art["sources"] = sources
-                break
+        articles = get_articles(username)
 
-        fb.add_document("articles", art)
-        created += 1
+        created = 0
+        errors = []
+        for art in articles:
+            try:
+                content_md = art.pop("content")
+                content_html = render_markdown(content_md)
+                art["content"] = content_md
+                art["content_html"] = content_html
+                art["excerpt"] = truncate_text(
+                    content_md.replace("#", "").replace("*", "").replace("<", "").strip(), 200
+                )
 
-    return jsonify({
-        "deleted": deleted,
-        "created": created,
-        "status": "ok"
-    })
+                for key, sources in SOURCES_MAP.items():
+                    if key in art["slug"]:
+                        art["sources"] = sources
+                        break
+
+                fb.add_document("articles", art)
+                created += 1
+            except Exception as e:
+                errors.append({"slug": art.get("slug", "?"), "error": str(e)})
+
+        return jsonify({
+            "deleted": deleted,
+            "created": created,
+            "errors": errors,
+            "status": "ok"
+        })
+
+    except Exception as e:
+        return jsonify({
+            "error": str(e),
+            "traceback": traceback.format_exc(),
+            "status": "failed"
+        }), 500
 
 
 @seed_bp.route("/admin/fix-wiki")

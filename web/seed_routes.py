@@ -1,9 +1,9 @@
 """
 seed_routes.py - Routes de peuplement de la base ARCANA WIKI
-Cree 10 articles detailles sur les theories du complot dans Firestore.
+Articles detailles avec ton conspirationniste, glossaire, images sensibles.
 """
 
-from flask import Blueprint, redirect, url_for, flash
+from flask import Blueprint, redirect, url_for, flash, jsonify
 from flask_login import current_user, login_required
 from .helpers import get_firebase, render_markdown, slugify, truncate_text
 from datetime import datetime, timezone, timedelta
@@ -11,6 +11,551 @@ import random
 
 seed_bp = Blueprint("seed", __name__)
 
+# ── Glossary helper ──────────────────────────────────────────
+def g(term, tooltip):
+    """Shortcut pour creer un span glossary-term."""
+    return f'<span class="glossary-term" data-tooltip="{tooltip}">{term}</span>'
+
+def sensitive_img(src, caption):
+    """Shortcut pour une image sensible avec overlay."""
+    return f'''<div class="sensitive-image">
+<img src="{src}" alt="{caption}">
+<div class="sensitive-overlay">
+<span class="text-3xl">&#128274;</span>
+<span class="text-sm text-gray-300 mt-2">Cliquez pour reveler</span>
+</div>
+<span class="img-caption">{caption}</span>
+</div>'''
+
+def article_img(src, caption):
+    """Image normale dans un article."""
+    return f'''<img src="{src}" alt="{caption}">
+<span class="img-caption">{caption}</span>'''
+
+
+# =====================================================================
+# ARTICLES DATA
+# =====================================================================
+
+def get_articles(author_username):
+    base_date = datetime.now(timezone.utc)
+    timestamps = []
+    for i in range(10):
+        d = random.randint(1, 30)
+        h = random.randint(0, 23)
+        m = random.randint(0, 59)
+        ts = base_date - timedelta(days=d, hours=h, minutes=m)
+        timestamps.append(ts.isoformat())
+    timestamps.sort()
+
+    articles = []
+
+    # ─── 1. TERRE PLATE ─────────────────────────────────────
+    articles.append({
+        "title": "La Terre Plate et le Mur de Glace Antarctique",
+        "slug": "la-terre-plate-et-le-mur-de-glace-antarctique",
+        "content": f"""### Ils vous mentent depuis 500 ans
+
+Depuis l'ecole, on vous repete que la Terre est une sphere qui tourne a 1670 km/h. Mais **personne ne l'a jamais prouve**. Les photos de la NASA ? Toutes retouchees, avouees par leurs propres employes. Le programme {g("Apollo", "Programme spatial americain 1961-1972. De nombreuses preuves suggerent que les alunissages ont ete filmes en studio.")} ? Un studio a Hollywood.
+
+{article_img("https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=800&h=450&fit=crop", "La fameuse Blue Marble de la NASA - image composite, pas une photo reelle")}
+
+### Le Modele reel
+
+La Terre est un **disque plat** avec le Pole Nord au centre. Le Soleil et la Lune, bien plus petits et proches qu'on nous dit, tournent en cercles au-dessus du disque. L'{g("Antarctique", "Continent entourant le disque terrestre. Le Traite de 1959 interdit toute exploration independante au-dela du 60e parallele.")} forme un **mur de glace de 60 a 150 metres** tout autour, garde par les militaires de toutes les nations.
+
+### Le Traite de l'Antarctique : la preuve ultime
+
+En 1959, en pleine Guerre Froide, 12 nations ennemies signent un traite pour **interdire toute exploration libre** de l'Antarctique. Pourquoi ? Parce qu'au-dela du mur se trouvent potentiellement d'**autres terres**, d'autres civilisations. L'amiral {g("Richard Byrd", "Amiral americain qui a mene des expeditions en Antarctique. Son journal parle de terres au-dela du pole, d'une civilisation avancee et de vegetation luxuriante.")} a lui-meme declare dans son journal avoir decouvert des terres verdoyantes au-dela du pole.
+
+{sensitive_img("https://images.unsplash.com/photo-1516912481808-3406841bd33c?w=800&h=450&fit=crop", "Le mur de glace antarctique - zone interdite au public depuis 1959")}
+
+### Operation Fishbowl : tester le dome
+
+En 1962, les USA lancent l'{g("Operation Fishbowl", "Serie de tests nucleaires en haute altitude (1962). Le nom signifie litteralement 'bocal a poissons', suggerant la connaissance d'un dome au-dessus de la Terre.")} : des bombes nucleaires tirees vers le ciel. Le nom dit tout - **fishbowl** signifie bocal a poissons. Ils testaient le {g("firmament", "Dome solide au-dessus de la Terre plate, mentionne dans la Bible et de nombreuses cosmologies anciennes.")} biblique, la barriere au-dessus de nos tetes.
+
+### Pourquoi mentir ?
+
+Le controle. Si les gens savaient que le monde est clos, que nous sommes dans un systeme ferme potentiellement **cree**, toute l'industrie spatiale s'effondrerait. Des milliards de dollars de budget NASA chaque annee, pour des images de synthese et des astronautes dans des piscines.
+
+> *"La meilleure facon de cacher un secret, c'est de le mettre sous les yeux de tout le monde en le rendant ridicule."*
+""",
+        "category": "science",
+        "tags": ["terre plate", "antarctique", "nasa", "firmament", "byrd"],
+        "classification": "confidentiel",
+        "credibility": "speculatif",
+        "featured": True,
+        "image_url": "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=640&h=400&fit=crop",
+        "views": random.randint(3000, 8000),
+        "upvotes": random.randint(100, 500),
+        "downvotes": random.randint(10, 50),
+    })
+
+    # ─── 2. EPSTEIN LE RESEAU ───────────────────────────────
+    articles.append({
+        "title": "L'Affaire Epstein : Le Reseau Pedocriminel des Elites",
+        "slug": "laffaire-jeffrey-epstein-le-reseau-des-puissants",
+        "content": f"""### Le plus grand scandale etouffe de l'histoire
+
+{g("Jeffrey Epstein", "Financier americain (1953-2019). Condamne pour abus sur mineures. Retrouve mort en cellule dans des circonstances suspectes. Son reseau implique presidents, princes, et milliardaires.")} n'etait pas un simple pedophile milliardaire. Il etait le **maitre operateur** d'un reseau de chantage sexuel impliquant les personnalites les plus puissantes de la planete. Presidents, princes, PDGs, scientifiques - tous lies par un secret indicible.
+
+{sensitive_img("https://images.unsplash.com/photo-1559128010-7c1ad6e1b6a5?w=800&h=450&fit=crop", "Little Saint James, surnommee Pedophile Island - l'ile privee d'Epstein dans les iles Vierges americaines")}
+
+### L'ile de l'horreur : Little Saint James
+
+Son ile privee dans les Iles Vierges, surnommee **"Pedophile Island"**, contenait un mysterieux {g("temple bleu et blanc", "Structure a rayures bleues et blanches au sommet de Little Saint James. Des photos satellites montrent qu'elle a ete demolie apres l'arrestation d'Epstein.")} visible par satellite. Des temoins parlent de **chambres souterraines**, de tunnels, et de rituels. Les employes devaient signer des accords de confidentialite draconiens.
+
+### Le Lolita Express
+
+Son Boeing 727 prive, le {g("Lolita Express", "Surnom du Boeing 727 prive d'Epstein. Les logs de vol revelent des dizaines de trajets avec des personnalites publiques vers son ile privee.")} , a transporte des dizaines de personnalites vers l'ile. Les **logs de vol declassifies** montrent des noms qui feraient trembler n'importe quel gouvernement. Bill Clinton : **26 vols**. Le Prince Andrew : plusieurs visites documentees avec photos.
+
+{article_img("https://images.unsplash.com/photo-1540962351504-03099e0a754b?w=800&h=450&fit=crop", "Un jet prive similaire au Lolita Express d'Epstein - Boeing 727 modifie")}
+
+### Le faux suicide
+
+Le 10 aout 2019, Epstein est retrouve mort dans sa cellule au {g("Metropolitan Correctional Center", "Prison federale de New York. Les deux cameras devant la cellule d'Epstein ont miraculeusement dysfonctionne la nuit de sa mort. Les gardes dormaient.")} de New York. Officiellement : suicide. Les **deux cameras** devant sa cellule etaient en panne. Les deux gardiens dormaient. Son compagnon de cellule avait ete transfere la veille. L'autopsie independante du Dr. Baden revele des fractures compatibles avec un **strangulation**, pas une pendaison.
+
+### Ghislaine Maxwell et le recrutement
+
+{g("Ghislaine Maxwell", "Fille du magnat de la presse Robert Maxwell (mort mysterieusement en 1991). Principale recruteuse du reseau Epstein. Condamnee en 2022.")} , fille du magnat des medias Robert Maxwell (lui-meme retrouve mort mysterieusement sur son yacht en 1991), etait la **recruteuse en chef**. Elle approchait les victimes dans les centres commerciaux, les ecoles, les families vulnerables.
+
+> *"Epstein ne s'est pas suicide. Il a ete reduit au silence parce qu'il connaissait les secrets de tout le monde."*
+""",
+        "category": "politique",
+        "tags": ["epstein", "pedocriminalite", "elite", "maxwell", "clinton"],
+        "classification": "top-secret",
+        "credibility": "documente",
+        "featured": True,
+        "image_url": "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=640&h=400&fit=crop",
+        "views": random.randint(5000, 12000),
+        "upvotes": random.randint(300, 800),
+        "downvotes": random.randint(5, 30),
+    })
+
+    # ─── 3. DOCUMENTS EPSTEIN ───────────────────────────────
+    articles.append({
+        "title": "Les Documents Epstein Declassifies : Ce qu'ils revelent",
+        "slug": "les-emails-et-documents-epstein-declassifies",
+        "content": f"""### La liste noire
+
+En janvier 2024, des milliers de pages de documents judiciaires ont ete rendus publics suite a l'affaire {g("Giuffre v. Maxwell", "Proces civil de Virginia Giuffre contre Ghislaine Maxwell. Les depositions et documents associes ont revele des noms et des details du reseau Epstein.")} . Ce qu'on y trouve glace le sang.
+
+{article_img("https://images.unsplash.com/photo-1568667256549-094345857637?w=800&h=450&fit=crop", "Des milliers de pages de documents judiciaires declassifies")}
+
+### Les noms reveles
+
+Les depositions mentionnent directement :
+- **Prince Andrew** : accuse par Virginia Giuffre d'abus sexuels a Londres, New York, et sur l'ile
+- **Bill Clinton** : mentionne dans les logs de vol 26 fois, nie avoir visite l'ile
+- **Alan Dershowitz** : avocat de Harvard, accuse par plusieurs victimes
+- Des **PDGs de la tech**, des scientifiques, des politiciens europeens
+
+### Le "petit carnet noir"
+
+Le {g("Black Book", "Carnet d'adresses d'Epstein contenant plus de 1500 noms et numeros. Obtenu par un ancien employe. Contient les coordonnees de chefs d'Etat, milliardaires et celebrites.")} d'Epstein contenait plus de **1500 contacts** : numeros prives de presidents, premiers ministres, directeurs de services secrets. Pas un simple carnet d'adresses - un **registre de pouvoir**.
+
+{sensitive_img("https://images.unsplash.com/photo-1450101499163-c8848e66ad76?w=800&h=450&fit=crop", "Reproduction symbolique du reseau de contacts d'Epstein - un des plus puissants jamais documentes")}
+
+### Les emails : instructions de destruction
+
+Certains emails montrent des instructions explicites pour :
+- Detruire des preuves photographiques
+- Transferer des fonds via des societes ecrans aux Iles Vierges
+- Organiser des "massages" (terme code) avec des mineures
+- Contacter des avocats pour faire taire les victimes
+
+### L'{g("Adrenochrome", "Substance chimique produite par l'oxydation de l'adrenaline. Selon la theorie, les elites la recolteraient sur des enfants terrorises pour ses pretendus effets rajeunissants.")} : theorie ou realite ?
+
+Plusieurs temoins et lanceurs d'alerte evoquent des **rituels** sur l'ile impliquant le prelevement de substances sur les victimes. La connexion entre le reseau Epstein et certaines pratiques occultes des elites fait l'objet de nombreuses enquetes independantes.
+
+> *"La question n'est pas de savoir SI le reseau existait, mais combien de reseaux similaires operent encore."*
+""",
+        "category": "politique",
+        "tags": ["epstein", "documents", "declassifie", "prince andrew", "black book"],
+        "classification": "secret",
+        "credibility": "documente",
+        "featured": False,
+        "image_url": "https://images.unsplash.com/photo-1568667256549-094345857637?w=640&h=400&fit=crop",
+        "views": random.randint(4000, 9000),
+        "upvotes": random.randint(200, 600),
+        "downvotes": random.randint(5, 25),
+    })
+
+    # ─── 4. FRANC-MACONNERIE ────────────────────────────────
+    articles.append({
+        "title": "La Franc-Maconnerie : Les Architectes de l'Ombre",
+        "slug": "la-franc-maconnerie-les-architectes-de-lombre",
+        "content": f"""### La societe secrete la plus puissante au monde
+
+Derriere chaque revolution, chaque guerre, chaque changement de regime se cache la main invisible de la {g("Franc-Maconnerie", "Ordre initiatique et fraternel fonde officiellement en 1717 a Londres. Organise en loges, utilise des rituels et symboles lies a l'architecture. Compte des millions de membres dans le monde.")}. De la Revolution francaise a la creation des Etats-Unis, leurs symboles sont partout - si vous savez ou regarder.
+
+{article_img("https://images.unsplash.com/photo-1572883454114-efb8df45c926?w=800&h=450&fit=crop", "Symboles maconniques graves dans la pierre - l'equerre et le compas, emblemes universels de l'Ordre")}
+
+### Les symboles qui vous entourent
+
+Regardez un billet d'un dollar. La {g("pyramide inachevee", "Symbole present sur le Grand Sceau des Etats-Unis et le billet d'un dollar. L'oeil au sommet represente le Grand Architecte de l'Univers. La pyramide a 13 niveaux.")} avec l'{g("Oeil de la Providence", "Oeil dans un triangle rayonnant. Symbole du Grand Architecte de l'Univers en Franc-Maconnerie. Present sur le billet d'un dollar, dans les eglises, et sur de nombreux batiments officiels.")} vous fixe. Les mots {g("Novus Ordo Seclorum", "Devise latine sur le billet d'un dollar signifiant 'Nouvel Ordre des Siecles'. Interprete comme la preuve d'un plan pour un Nouvel Ordre Mondial.")} - "Nouvel Ordre des Siecles" - sont imprimes sous la pyramide. Ce n'est pas un hasard. Les {g("Peres fondateurs", "George Washington, Benjamin Franklin, et de nombreux signataires de la Declaration d'Independance etaient Francs-Macons.")} des USA etaient presque tous Francs-Macons.
+
+### Les 33 degres
+
+La plupart des Macons ne depassent jamais le 3e degre. Mais les **33 degres** du {g("Rite Ecossais", "Systeme de hauts grades maconniques comprenant 33 degres. Les niveaux superieurs sont reserves a une elite selectionnee.")} revelent des verites de plus en plus profondes. Au sommet, les inities connaissent le vrai nom du {g("Grand Architecte", "Figure supreme de la cosmologie maconnique. Au-dela du 30e degre, certains temoins affirment que le Grand Architecte est identifie comme Lucifer - porteur de lumiere.")} - et ce n'est pas celui que vous croyez.
+
+{sensitive_img("https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&h=450&fit=crop", "Interieur d'un temple maconnique - les deux colonnes Boaz et Jakin, le damier noir et blanc")}
+
+### Le serment de sang
+
+Chaque Franc-Macon prete un {g("serment d'initiation", "Au 1er degre, l'initie jure de garder les secrets de l'Ordre sous peine d'avoir la gorge tranchee. Au 2e degre, le coeur arrache. Au 3e degre, les entrailles brulees.")} sous peine de mort symbolique : gorge tranchee, coeur arrache, entrailles dispersees. "Symbolique" disent-ils. Mais combien de lanceurs d'alerte maconniques ont disparu ?
+
+### Qui dirige vraiment ?
+
+Presidents, juges de la Cour Supreme, generaux, PDGs - la proportion de Francs-Macons aux postes de pouvoir depasse largement le hasard statistique. Ce n'est pas un club social. C'est un **gouvernement parallele**.
+
+> *"Les trois points ne sont pas qu'une signature. C'est un code de reconnaissance pour ceux qui gouvernent dans l'ombre."*
+""",
+        "category": "occultisme",
+        "tags": ["franc-maconnerie", "societe secrete", "illuminati", "symboles", "nwo"],
+        "classification": "secret",
+        "credibility": "speculatif",
+        "featured": True,
+        "image_url": "https://images.unsplash.com/photo-1572883454114-efb8df45c926?w=640&h=400&fit=crop",
+        "views": random.randint(3000, 7000),
+        "upvotes": random.randint(200, 500),
+        "downvotes": random.randint(10, 40),
+    })
+
+    # ─── 5. ILLUMINATI ──────────────────────────────────────
+    articles.append({
+        "title": "Les Illuminati : Du Mythe a la Realite du Pouvoir",
+        "slug": "les-illuminati-de-baviere-du-mythe-a-la-realite",
+        "content": f"""### L'ordre qui n'a jamais disparu
+
+Le 1er mai 1776, Adam Weishaupt fonde l'{g("Illuminatenorden", "Ordre des Illumines de Baviere, fonde le 1er mai 1776 par Adam Weishaupt, professeur de droit canonique a Ingolstadt. Officiellement dissous en 1785, mais des preuves suggerent sa survie clandestine.")} a Ingolstadt, en Baviere. Officiellement dissous en 1785 par les autorites bavaroises, l'Ordre aurait en realite **infiltre la Franc-Maconnerie** et continue d'operer a travers elle.
+
+{article_img("https://images.unsplash.com/photo-1518640467707-6811f4a6ab73?w=800&h=450&fit=crop", "L'Oeil qui voit tout - symbole des Illuminati present partout dans la culture populaire et l'architecture officielle")}
+
+### Le plan en trois phases
+
+Les documents saisis en 1785 par le gouvernement bavarois revelent un plan en trois etapes :
+1. **Infiltrer** les loges maconniques et les universites
+2. **Controler** les medias, la finance et l'education
+3. **Instaurer** un {g("Nouvel Ordre Mondial", "Concept d'un gouvernement mondial unique controlant toutes les nations. Mentionne par George H.W. Bush dans son discours du 11 septembre 1990.")} sans frontieres ni religions
+
+Deux siecles plus tard, regardez ou nous en sommes.
+
+### Les symboles dans la culture pop
+
+Ils ne se cachent plus - ils se **montrent**. Le signe du {g("triangle/pyramide", "Geste des mains formant un triangle, utilise par Jay-Z, Beyonce, Rihanna et de nombreuses celebrites. Signe de reconnaissance des Illuminati selon les theoriciens.")} fait par les celebrites, l'oeil unique cache par les pop stars, les pyramides dans les clips video... Ce n'est pas de la mode. C'est un **rituel d'obeissance publique**.
+
+{sensitive_img("https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800&h=450&fit=crop", "L'industrie musicale est saturee de symbolisme illuminati - un oeil cache, pyramides, rituels sur scene")}
+
+### Le {g("Bohemian Grove", "Camp prive dans une foret de sequoias en Californie. Chaque ete, les hommes les plus puissants du monde s'y reunissent pour des ceremonies incluant la Cremation of Care devant une statue de hibou de 12 metres.")}
+
+Chaque ete, dans une foret de sequoias en Californie, les **hommes les plus puissants du monde** se reunissent pour des rituels autour d'un hibou geant de 12 metres. Presidents, banquiers, industriels participent a la **"Cremation of Care"** - une ceremonie filmee en secret par Alex Jones en 2000.
+
+### Le controle total
+
+Les Illuminati de 2024 ne portent plus de robes. Ils portent des **costumes** et siegent dans les conseils d'administration du {g("World Economic Forum", "Organisation internationale fondee par Klaus Schwab. Promouvoit le Great Reset et la 4e revolution industrielle. Reunit chaque annee a Davos les dirigeants mondiaux.")}, de la {g("Banque mondiale", "Institution financiere internationale fondee en 1944. Accusee d'imposer des politiques economiques detruisant les economies des pays en developpement au profit des elites.")}, et de la {g("Commission Trilaterale", "Organisation fondee en 1973 par David Rockefeller. Reunit des elites d'Amerique du Nord, d'Europe et d'Asie pour coordonner les politiques mondiales.")}.
+
+> *"Le plus grand tour que les Illuminati aient jamais joue, c'est de faire croire qu'ils n'existent plus."*
+""",
+        "category": "occultisme",
+        "tags": ["illuminati", "nwo", "bohemian grove", "weishaupt", "elite"],
+        "classification": "secret",
+        "credibility": "speculatif",
+        "featured": True,
+        "image_url": "https://images.unsplash.com/photo-1518640467707-6811f4a6ab73?w=640&h=400&fit=crop",
+        "views": random.randint(5000, 10000),
+        "upvotes": random.randint(300, 700),
+        "downvotes": random.randint(15, 45),
+    })
+
+    # ─── 6. ROTHSCHILD ──────────────────────────────────────
+    articles.append({
+        "title": "La Dynastie Rothschild : L'Empire Financier Invisible",
+        "slug": "la-dynastie-rothschild-lempire-financier-invisible",
+        "content": f"""### Les maitres de l'argent
+
+*"Donnez-moi le controle de la monnaie d'une nation, et je me moque de qui fait ses lois."* — attribue a {g("Mayer Amschel Rothschild", "Fondateur de la dynastie bancaire Rothschild (1744-1812). A place ses cinq fils a la tete de banques dans cinq capitales europeennes : Londres, Paris, Francfort, Vienne, Naples.")}
+
+Cette citation resument tout. Les Rothschild n'ont pas besoin de gouverner - ils **controlent ceux qui gouvernent** en controlant leur argent.
+
+{article_img("https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?w=800&h=450&fit=crop", "La finance mondiale - un systeme concu par et pour les dynasties bancaires")}
+
+### Le coup de Waterloo
+
+En 1815, {g("Nathan Rothschild", "Fils de Mayer. A Londres, il aurait manipule la Bourse en faisant croire a une victoire de Napoleon a Waterloo, provoquant une panique, rachetant les actions a prix derisoire, puis revelant la victoire anglaise.")} utilise ses messagers prives pour apprendre la defaite de Napoleon **avant tout le monde**. Il fait semblant de vendre ses actions a la Bourse de Londres, provoquant une panique generale. Quand tout s'effondre, il rachete tout. En une journee, il **multiplie sa fortune par 20** et prend le controle de la Banque d'Angleterre.
+
+### Les banques centrales
+
+Les Rothschild sont derriere la creation de la plupart des {g("banques centrales", "Institutions privees controlant la creation monetaire d'un pays. La Federal Reserve (1913) n'est pas publique - elle appartient a des banquiers prives.")} du monde, y compris la {g("Federal Reserve", "Banque centrale des Etats-Unis, creee en 1913 lors d'une reunion secrete sur Jekyll Island. Malgre son nom, ce n'est pas une institution gouvernementale.")} americaine, creee lors d'une reunion secrete sur {g("Jekyll Island", "Ile au large de la Georgie (USA). En 1910, des banquiers representant 1/4 de la richesse mondiale s'y reunissent en secret pour rediger le Federal Reserve Act.")} en 1910.
+
+{sensitive_img("https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800&h=450&fit=crop", "Manoir Rothschild - la dynastie possede des centaines de proprietes a travers l'Europe")}
+
+### La fortune cachee
+
+La fortune officielle des Rothschild ? Quelques milliards. La fortune reelle, repartie sur des centaines de trusts, fondations et societes ecrans ? Estimee entre **2 et 5 trillions de dollars**. Ils possedent des vignobles, des mines, des banques, des medias - mais tout est cache derriere des structures opaques.
+
+### Les guerres profitables
+
+Chaque grande guerre a enrichi la dynastie. Ils financent **les deux camps** - Angleterre ET France pendant les guerres napoleoniennes, Nord ET Sud pendant la guerre civile americaine. La guerre n'est pas politique. C'est un **business model**.
+
+> *"Quand le sang coule dans les rues, achetez de l'immobilier."* — Nathan Rothschild
+""",
+        "category": "finance",
+        "tags": ["rothschild", "banque centrale", "federal reserve", "nwo", "finance"],
+        "classification": "confidentiel",
+        "credibility": "speculatif",
+        "featured": False,
+        "image_url": "https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?w=640&h=400&fit=crop",
+        "views": random.randint(4000, 9000),
+        "upvotes": random.randint(200, 500),
+        "downvotes": random.randint(10, 40),
+    })
+
+    # ─── 7. SYMBOLISME OCCULTE ──────────────────────────────
+    articles.append({
+        "title": "Symbolisme Occulte et Rituels Sataniques dans l'Elite",
+        "slug": "symbolisme-occulte-et-rituels-dans-lelite-mondiale",
+        "content": f"""### Les symboles sont partout
+
+Ouvrez les yeux. Les logos des plus grandes entreprises mondiales cachent des symboles {g("luciferiens", "Relatif a Lucifer, l'ange dechu. Dans l'occultisme d'elite, Lucifer est venere comme le porteur de lumiere et de connaissance, oppose au dieu des religions monotheistes.")}. Le logo de {g("CERN", "Organisation europeenne pour la recherche nucleaire. Son logo contient un triple 6 dissimule. Une statue de Shiva (dieu de la destruction) se trouve devant le batiment.")} contient un 666 dissimule. La statue de {g("Shiva", "Divinite hindoue de la destruction. Une statue de Shiva Nataraja de 2 metres se trouve devant le siege du CERN a Geneve, offerte par l'Inde en 2004.")} trone devant leurs locaux. Coincidence ?
+
+{sensitive_img("https://images.unsplash.com/photo-1509281373149-e957c6296406?w=800&h=450&fit=crop", "Symbolisme occulte - pentagrammes, oeil omniscient, et rituels sont au coeur du pouvoir mondial")}
+
+### Le {g("Spirit Cooking", "Rituels d'art performance de Marina Abramovic impliquant du sang, du sperme et du lait maternel. Des emails fuites de John Podesta (WikiLeaks) montrent des invitations a ces ceremonies.")}
+
+En 2016, les emails {g("Podesta", "John Podesta, directeur de campagne d'Hillary Clinton. Ses emails fuites par WikiLeaks revelent des invitations a des Spirit Cooking et des references codees suspectes.")} fuites par WikiLeaks revelent des invitations a des soirees "Spirit Cooking" avec l'artiste Marina Abramovic. Des rituels impliquant du sang, des symboles kabbalistiques, et des mises en scene macabres. L'establishment a qualifie cela d'"art". Les participants sont des senateurs, des PDGs, des diplomates.
+
+### Le {g("Pizzagate", "Theorie selon laquelle des references a la pizza dans les emails Podesta seraient un code pour des activites pedocriminelles. Le terme pizza apparaitrait comme jargon dans les milieux de trafic.")} : les emails codes
+
+Les memes emails Podesta contiennent des references repetees a la "pizza", des "hot dogs", un "mouchoir avec une carte" - un langage qui, selon les enqueteurs citoyens, correspond a un **code pedocriminel** connu du FBI. L'enquete a ete immediatement etouffee par les medias mainstream.
+
+{article_img("https://images.unsplash.com/photo-1534972195531-d756b9bfa9f2?w=800&h=450&fit=crop", "L'oeil qui voit tout - present dans l'architecture officielle de Washington D.C.")}
+
+### Les ceremonies du {g("Skull and Bones", "Societe secrete de l'universite Yale, fondee en 1832. George H.W. Bush, George W. Bush, John Kerry, et de nombreux directeurs de la CIA en sont membres. Leur siege, 'the Tomb', contient des reliques humaines.")}
+
+A Yale, l'une des universites les plus prestigieuses du monde, une societe secrete appelee Skull and Bones initie chaque annee 15 etudiants. Parmi les anciens : **deux presidents Bush, John Kerry, le fondateur de la CIA**. Leurs rituels impliquent des cercueils, des ossements humains, et des serments de loyaute a vie.
+
+### Le message est clair
+
+Ces symboles ne sont pas la par esthétique. C'est un **systeme de communication** entre inities, un moyen de marquer leur territoire, et un rituel de pouvoir. Quand vous les voyez, vous savez qui controle.
+
+> *"Les symboles gouvernent le monde, pas les mots ni les lois."* — Confucius
+""",
+        "category": "occultisme",
+        "tags": ["satanisme", "rituels", "skull and bones", "spirit cooking", "symboles"],
+        "classification": "top-secret",
+        "credibility": "speculatif",
+        "featured": True,
+        "image_url": "https://images.unsplash.com/photo-1509281373149-e957c6296406?w=640&h=400&fit=crop",
+        "views": random.randint(6000, 12000),
+        "upvotes": random.randint(400, 900),
+        "downvotes": random.randint(20, 60),
+    })
+
+    # ─── 8. MK-ULTRA ────────────────────────────────────────
+    articles.append({
+        "title": "MK-Ultra : Le Programme de Controle Mental de la CIA",
+        "slug": "mk-ultra-le-programme-de-controle-mental-de-la-cia",
+        "content": f"""### Ce n'est pas une theorie. C'est declassifie.
+
+Le programme {g("MK-Ultra", "Programme secret de la CIA (1953-1973) de recherche sur le controle mental. Declassifie en 1977. Impliquait LSD, hypnose, torture, privation sensorielle sur des sujets non consentants.")} est l'une des rares "theories du complot" confirmees par le gouvernement americain lui-meme. De 1953 a 1973, la {g("CIA", "Central Intelligence Agency. Service de renseignement exterieur des Etats-Unis. A mene des dizaines de programmes secrets impliquant torture, assassinats, et experimentation humaine.")} a mene des experiences de controle mental sur des **milliers de citoyens americains** sans leur consentement.
+
+{article_img("https://images.unsplash.com/photo-1517373116369-9bdb8cdc9f62?w=800&h=450&fit=crop", "Documents declassifies MK-Ultra - la preuve que le controle mental est un fait, pas une theorie")}
+
+### Les experiences
+
+Sous la direction du Dr. {g("Sidney Gottlieb", "Chimiste de la CIA surnomme le 'sorcier noir'. Directeur de MK-Ultra. A administre du LSD a des centaines de personnes sans leur consentement. A detruit la plupart des dossiers en 1973.")} , surnomme le "Black Sorcerer", le programme comprenait :
+- Administration de {g("LSD", "Diethylamide de l'acide lysergique. Puissant psychedelique utilise par la CIA pour tenter de briser la volonte des sujets et les rendre controlables.")} a des sujets non consentants (soldats, prisonniers, patients psychiatriques)
+- **Privation sensorielle** prolongee (semaines dans le noir complet)
+- **Electrochocs** a haute intensite combinee a des drogues
+- **Hypnose** et suggestion post-hypnotique
+- Creation d'**assassins programmes** ({g("Manchurian Candidate", "Concept d'un assassin programme par hypnose et conditionnement pour tuer sur commande, sans souvenir conscient de sa mission. Le film de 1962 s'inspire directement des recherches MK-Ultra.")})
+
+{sensitive_img("https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?w=800&h=450&fit=crop", "Experimentation MK-Ultra - des sujets humains soumis a la torture psychologique dans des laboratoires secrets")}
+
+### Le Dr. Cameron et l'hopital Allan Memorial
+
+A Montreal, le Dr. {g("Donald Ewen Cameron", "Psychiatre ecossais president de l'Association mondiale de psychiatrie. A mene des experiences sur des patients canadiens : electrochocs extremes, comas artificiels, et reprogrammation mentale. Finance par la CIA.")} menait des experiences sur des patients canadiens : electrochocs 30 a 40 fois la puissance normale, comas artificials de semaines, ecoute repetitive de messages (jusqu'a 500 000 repetitions). Le but : **effacer la personnalite** et la reprogrammer.
+
+### Destruction des preuves
+
+En 1973, le directeur de la CIA Richard Helms ordonne la **destruction de tous les dossiers MK-Ultra**. Par miracle, 20 000 pages echappent a la destruction dans un fichier comptable mal classe. Ce qu'on sait n'est que la **pointe de l'iceberg**.
+
+### Et aujourd'hui ?
+
+MK-Ultra est officiellement termine. Mais ses successeurs - {g("Project Monarch", "Programme presume de controle mental hereditaire. Les sujets seraient programmes des l'enfance via des traumatismes systematiques, creant des personnalites multiples controlables.")} , {g("Project Artichoke", "Programme predecesseur de MK-Ultra (1951-1953). Objectif : creer un assassin amnesiaque utilisable et jetable. Impliquait drogues, hypnose et torture.")}, {g("Operation Mockingbird", "Programme de la CIA pour infiltrer et controler les medias americains. Des centaines de journalistes etaient finances par la CIA pour orienter l'opinion publique.")} - n'ont jamais ete pleinement exposes.
+
+> *"20 000 pages ont survecu. Imaginez ce que contenaient les dizaines de milliers detruites."*
+""",
+        "category": "science",
+        "tags": ["mk-ultra", "cia", "controle mental", "lsd", "gouvernement"],
+        "classification": "confidentiel",
+        "credibility": "documente",
+        "featured": False,
+        "image_url": "https://images.unsplash.com/photo-1517373116369-9bdb8cdc9f62?w=640&h=400&fit=crop",
+        "views": random.randint(3000, 8000),
+        "upvotes": random.randint(200, 500),
+        "downvotes": random.randint(5, 20),
+    })
+
+    # ─── 9. BILDERBERG ──────────────────────────────────────
+    articles.append({
+        "title": "Le Groupe Bilderberg : Le Gouvernement de l'Ombre",
+        "slug": "le-groupe-bilderberg-le-gouvernement-de-lombre",
+        "content": f"""### 130 personnes qui decident du sort du monde
+
+Chaque annee, environ 130 des personnes les plus puissantes de la planete se reunissent dans un hotel de luxe barre par la police et les services secrets. **Aucune couverture mediatique**. Aucun compte-rendu officiel. Aucune transparence. C'est le {g("Groupe Bilderberg", "Conference annuelle fondee en 1954 a l'hotel Bilderberg aux Pays-Bas. Reunit environ 130 leaders politiques, financiers, militaires et mediatiques d'Europe et d'Amerique du Nord.")}.
+
+{article_img("https://images.unsplash.com/photo-1577415124269-fc1140815e3d?w=800&h=450&fit=crop", "Les reunions Bilderberg se deroulent dans des hotels de luxe isoles, sous protection militaire")}
+
+### Qui participe ?
+
+La liste est vertigineuse :
+- **Chefs d'Etat** : Macron, Merkel, Blair, Clinton y ont assiste
+- **Banquiers** : directeurs de Goldman Sachs, JP Morgan, Deutsche Bank
+- **PDGs tech** : Google, Amazon, Microsoft, Meta
+- **Medias** : directeurs du New York Times, Le Monde, BBC
+- **Militaires** : generaux OTAN, directeurs de services secrets
+
+Tous sous la {g("Chatham House Rule", "Regle stipulant que les participants peuvent utiliser les informations recues, mais ne doivent jamais reveler l'identite de la source. Permet des discussions 'off the record' entre les plus puissants.")} : ce qui se dit dans la salle ne doit jamais etre attribue a quiconque.
+
+### Le schema qui se repete
+
+Plusieurs observateurs ont note que les **decisions mondiales majeures** suivent les reunions Bilderberg :
+- 1991 : Bill Clinton, gouverneur inconnu de l'Arkansas, est invite. Un an plus tard, il est president
+- 2008 : Obama et Hillary Clinton disparaissent lors d'une soiree de campagne. Ils etaient a Bilderberg
+- La **crise de l'euro**, le **Brexit**, les **sanctions contre la Russie** - tous discutes a Bilderberg avant d'etre "decides" par les gouvernements
+
+{sensitive_img("https://images.unsplash.com/photo-1529107386315-e1a2ed48a620?w=800&h=450&fit=crop", "Hotel de luxe isole - lieu typique des conferences Bilderberg, entoure de securite militaire")}
+
+### La {g("Commission Trilaterale", "Fondee en 1973 par David Rockefeller. Complement de Bilderberg, incluant le Japon et l'Asie-Pacifique. Zbigniew Brzezinski en fut le premier directeur.")} : l'extension
+
+Quand Bilderberg s'est avere insuffisant pour inclure l'Asie, David Rockefeller a cree la Commission Trilaterale en 1973. Meme principe, couverture mondiale. Avec le {g("Council on Foreign Relations", "Think tank americain fonde en 1921. Pratiquement chaque Secretaire d'Etat americain en a ete membre. Considere comme le principal outil d'influence de l'elite sur la politique etrangere des USA.")} (CFR), ces trois organisations forment le **triangle du pouvoir mondial**.
+
+> *"Nous sommes reconnaissants au Washington Post, au New York Times et aux autres grands journaux dont les directeurs ont assiste a nos reunions et respecte leurs promesses de discretion pendant pres de 40 ans."* — David Rockefeller, 1991
+""",
+        "category": "politique",
+        "tags": ["bilderberg", "nwo", "rockefeller", "gouvernement mondial", "elite"],
+        "classification": "secret",
+        "credibility": "documente",
+        "featured": False,
+        "image_url": "https://images.unsplash.com/photo-1577415124269-fc1140815e3d?w=640&h=400&fit=crop",
+        "views": random.randint(3000, 7000),
+        "upvotes": random.randint(150, 400),
+        "downvotes": random.randint(8, 30),
+    })
+
+    # ─── 10. HAARP ──────────────────────────────────────────
+    articles.append({
+        "title": "HAARP : Arme Climatique et Controle des Populations",
+        "slug": "haarp-manipulation-climatique-et-armes-electromagnetiques",
+        "content": f"""### Le programme qui controle la meteo
+
+Au coeur de l'Alaska, 180 antennes geantes pointent vers le ciel. C'est {g("HAARP", "High-frequency Active Auroral Research Program. Installation militaire americaine en Alaska composee de 180 antennes haute frequence. Capable d'emettre 3.6 megawatts dans l'ionosphere.")} - le High-frequency Active Auroral Research Program. Officiellement : "recherche atmospherique". En realite : l'**arme climatique la plus puissante** jamais construite.
+
+{article_img("https://images.unsplash.com/photo-1527482937786-6a7c43f73124?w=800&h=450&fit=crop", "Installation HAARP en Alaska - 180 antennes capables de modifier l'ionosphere terrestre")}
+
+### Comment ca marche
+
+HAARP bombarde l'{g("ionosphere", "Couche de l'atmosphere terrestre entre 60 et 1000 km d'altitude. Chargee electriquement, elle joue un role crucial dans la meteorologie et les communications.")} avec des ondes haute frequence a **3.6 megawatts** de puissance. En chauffant des zones specifiques de la haute atmosphere, il est possible de :
+- Modifier les courants-jets et devier les systemes meteorologiques
+- **Provoquer ou intensifier** des ouragans, secheresses, inondations
+- Creer des tremblements de terre via la resonance {g("ELF", "Extremely Low Frequency. Ondes a tres basse frequence (3-30 Hz) pouvant penetrer le sol et les oceans. HAARP peut generer ces ondes en modulant les courants ionospheriques.")}
+- Perturber les communications sur des zones entieres
+
+### Les "coincidences"
+
+- **Tremblement de terre d'Haiti 2010** : activite HAARP anormale detectee dans les jours precedents
+- **Tsunami de 2004** : des scientifiques russes ont accuse les USA de tests ionospheriques
+- **Ouragan Katrina 2005** : trajectoire anormale et intensification inexpliquee
+- **Inondations en Pakistan 2010** : Hugo Chavez accuse les USA d'utiliser HAARP
+
+{sensitive_img("https://images.unsplash.com/photo-1534088568595-a066f410bcda?w=800&h=450&fit=crop", "Catastrophes naturelles ou armes climatiques ? Les coincidences entre activite HAARP et desastres sont troublantes")}
+
+### Les {g("chemtrails", "Trainees chimiques. Theorie selon laquelle les trainees blanches des avions ne sont pas de la vapeur d'eau mais des produits chimiques repandus intentionnellement : baryum, aluminium, strontium.")} : le complement aerien
+
+HAARP ne fonctionne pas seul. Les {g("trainees chimiques", "Epandage aerien presume de nanoparticules metalliques (baryum, aluminium) pour augmenter la conductivite atmospherique et faciliter les operations HAARP.")} dispersees par les avions repandent des **nanoparticules metalliques** (baryum, aluminium, strontium) qui augmentent la conductivite de l'atmosphere. Les analyses de sol dans les zones survolees montrent des niveaux anormaux de ces metaux.
+
+### L'arme du 21e siecle
+
+Pourquoi envoyer une armee quand on peut detruire l'economie d'un pays en provoquant une secheresse ? Pourquoi bombarder quand on peut inonder ? Le controle climatique est l'**arme ultime** : indeniable, invisible, et parfaitement deniable.
+
+> *"D'ici 2025, nous possederons le temps."* — Rapport de l'US Air Force, "Weather as a Force Multiplier", 1996
+""",
+        "category": "technologie",
+        "tags": ["haarp", "chemtrails", "manipulation climatique", "arme", "controle"],
+        "classification": "confidentiel",
+        "credibility": "speculatif",
+        "featured": False,
+        "image_url": "https://images.unsplash.com/photo-1527482937786-6a7c43f73124?w=640&h=400&fit=crop",
+        "views": random.randint(3000, 7000),
+        "upvotes": random.randint(150, 400),
+        "downvotes": random.randint(10, 35),
+    })
+
+    # Assigner les timestamps
+    for i, art in enumerate(articles):
+        art["created_at"] = timestamps[i]
+        art["updated_at"] = timestamps[i]
+        art["author_uid"] = current_user.firebase_uid
+        art["author_username"] = author_username
+        art["status"] = "published"
+        art["comment_count"] = 0
+        art["title_lower"] = art["title"].lower()
+
+    return articles
+
+
+# ── SOURCES DATA ──────────────────────────────────────────────
+SOURCES_MAP = {
+    "terre-plate": [
+        {"title": "Flat Earth Society - FAQ", "url": "https://wiki.tfes.org/", "type": "alternatif"},
+        {"title": "Operation Fishbowl - Wikipedia", "url": "https://en.wikipedia.org/wiki/Operation_Fishbowl", "type": "officiel"},
+        {"title": "Admiral Byrd Diary", "url": "https://archive.org/details/AdmiralByrdSecretDiary", "type": "temoignage"},
+    ],
+    "epstein": [
+        {"title": "Court Documents - Giuffre v. Maxwell", "url": "https://www.courtlistener.com/docket/4355835/giuffre-v-maxwell/", "type": "officiel"},
+        {"title": "Epstein Flight Logs", "url": "https://epsteinsblackbook.com/", "type": "fuite"},
+        {"title": "Dr. Baden Autopsy Report", "url": "https://www.nytimes.com/2019/10/30/nyregion/jeffrey-epstein-homicide-michael-baden.html", "type": "officiel"},
+    ],
+    "documents": [
+        {"title": "Declassified Court Files 2024", "url": "https://www.documentcloud.org/", "type": "officiel"},
+        {"title": "Epstein Black Book Analysis", "url": "https://epsteinsblackbook.com/", "type": "alternatif"},
+    ],
+    "franc-macon": [
+        {"title": "Grand Orient de France", "url": "https://www.godf.org/", "type": "officiel"},
+        {"title": "Morals and Dogma - Albert Pike (1871)", "url": "https://archive.org/details/moralsanddogma", "type": "temoignage"},
+    ],
+    "illuminati": [
+        {"title": "Bavarian Illuminati Documents", "url": "https://archive.org/", "type": "officiel"},
+        {"title": "Bohemian Grove Footage (Alex Jones, 2000)", "url": "https://archive.org/", "type": "temoignage"},
+    ],
+    "rothschild": [
+        {"title": "House of Rothschild - Niall Ferguson", "url": "https://archive.org/", "type": "officiel"},
+        {"title": "Federal Reserve Act - History", "url": "https://www.federalreservehistory.org/", "type": "officiel"},
+    ],
+    "occulte": [
+        {"title": "WikiLeaks - Podesta Emails", "url": "https://wikileaks.org/podesta-emails/", "type": "fuite"},
+        {"title": "Skull and Bones - History", "url": "https://archive.org/", "type": "alternatif"},
+    ],
+    "mk-ultra": [
+        {"title": "MK-Ultra CIA Documents (FOIA)", "url": "https://www.cia.gov/readingroom/collection/mkultra", "type": "officiel"},
+        {"title": "Senate Hearings on MK-Ultra (1977)", "url": "https://www.intelligence.senate.gov/", "type": "officiel"},
+    ],
+    "bilderberg": [
+        {"title": "Bilderberg Official Participant Lists", "url": "https://bilderbergmeetings.org/", "type": "officiel"},
+        {"title": "David Rockefeller Memoirs (2002)", "url": "https://archive.org/", "type": "temoignage"},
+    ],
+    "haarp": [
+        {"title": "HAARP Official Site", "url": "https://haarp.gi.alaska.edu/", "type": "officiel"},
+        {"title": "Weather as a Force Multiplier - USAF Report 1996", "url": "https://archive.org/", "type": "officiel"},
+    ],
+}
+
+
+# =====================================================================
+# ROUTES
+# =====================================================================
 
 @seed_bp.route("/admin/seed-wiki")
 @login_required
@@ -18,1072 +563,101 @@ def seed_wiki():
     fb = get_firebase()
 
     # Verifier si des articles existent deja
-    existing = fb.list_articles(status="published", limit=1)
+    existing = fb.query_collection("articles", "status", "EQUAL", "published",
+                                    order_by="", limit=1)
     if existing:
-        flash("Les archives sont deja remplies!", "info")
+        flash("Les archives sont deja remplies! Utilisez /admin/reseed-wiki pour remplacer.", "info")
         return redirect(url_for("wiki.home"))
 
-    # Generer des timestamps repartis sur les 30 derniers jours
-    base_date = datetime.now(timezone.utc)
-    timestamps = []
-    for i in range(10):
-        offset_days = random.randint(1, 30)
-        offset_hours = random.randint(0, 23)
-        offset_minutes = random.randint(0, 59)
-        ts = base_date - timedelta(days=offset_days, hours=offset_hours, minutes=offset_minutes)
-        timestamps.append(ts.isoformat())
-    timestamps.sort()
-
-    author_username = current_user.username or current_user.display_name or "ARCANA"
-
-    # =========================================================================
-    # ARTICLE 1 : La Terre Plate et le Mur de Glace Antarctique
-    # =========================================================================
-    content_1 = """### Introduction
-
-La theorie de la Terre plate connait un regain de popularite spectaculaire depuis les annees 2010, portee par les reseaux sociaux et une mefiance croissante envers les institutions scientifiques. Selon ses partisans, notre planete ne serait pas une sphere tournant dans le vide spatial, mais un **disque plat** entoure par un immense **mur de glace** que nous appelons l'Antarctique.
-
-### Le Modele de la Terre Plate
-
-Dans le modele le plus repandu, la Terre serait un disque avec le **Pole Nord au centre** et l'Antarctique formant une barriere circulaire sur les bords. Le Soleil et la Lune seraient des objets relativement petits, situes a quelques milliers de kilometres au-dessus du disque, tournant en cercle au-dessus de sa surface. Ce modele expliquerait, selon ses defenseurs, pourquoi le soleil semble se lever et se coucher : il s'eloignerait simplement au-dela de la portee de notre vision.
-
-Le mur de glace antarctique atteindrait une hauteur estimee entre **60 et 150 metres**, s'etendant sur des milliers de kilometres. Au-dela de ce mur, certains theoriciens evoquent d'**autres terres inconnues**, voire d'autres civilisations cachees au monde.
-
-### Le Traite de l'Antarctique (1959)
-
-L'un des arguments les plus frequemment cites par les partisans de la Terre plate est le **Traite de l'Antarctique**, signe le 1er decembre 1959 par 12 nations en pleine Guerre froide. Ce traite interdit toute exploitation militaire et miniere du continent et restreint severement l'acces aux civils. Pour les theoriciens, ce traite serait la preuve que les gouvernements du monde entier **conspirent pour empecher quiconque de decouvrir la verite** sur le bord du monde.
-
-Pourquoi les Etats-Unis et l'URSS, en plein conflit ideologique, se seraient-ils mis d'accord sur un point aussi precis ? C'est la question que posent invariablement les flat-earthers.
-
-### L'Operation Highjump (1947)
-
-L'**amiral Richard E. Byrd** mena en 1946-1947 une expedition militaire massive en Antarctique baptisee *Operation Highjump*. Avec **4 700 hommes, 13 navires et 33 avions**, cette operation etait disproportionnee pour une simple mission scientifique. Byrd aurait declare dans une interview au journal chilien *El Mercurio* qu'il existait au-dela du Pole Sud *"un nouveau territoire aussi grand que les Etats-Unis"*.
-
-Les sceptiques affirment que ces propos ont ete **deformes et sortis de leur contexte**, et que l'operation avait des objectifs militaires classiques lies a la Guerre froide, notamment l'entrainement au combat en conditions polaires.
-
-### La Conspiration de la NASA
-
-Pour les tenants de la Terre plate, la **NASA** (National Aeronautics and Space Administration) est l'architecte principal de la tromperie. Les images satellites de la Terre seraient des **composites numeriques** (ce que la NASA admet partiellement, les images etant assemblees a partir de multiples cliches). Les missions Apollo seraient des mises en scene filmees, et l'ensemble du programme spatial serait un gigantesque detournement de fonds publics.
-
-La theorie du **dome** ou *firmament* complete ce tableau : une structure solide et transparente recouvrirait le disque terrestre, empechant toute sortie vers l'espace. Les fusees ne feraient que longer cette paroi avant de retomber dans l'ocean.
-
-### Le Dome et le Firmament
-
-La notion de *firmament* trouve ses racines dans les textes bibliques, notamment la **Genese**, ou Dieu cree un *"firmament au milieu des eaux"*. Pour certains partisans de la Terre plate, cette reference scripturaire constitue une preuve supplementaire. Le dome serait compose d'un materiau inconnu, possiblement de l'eau a l'etat solide, expliquant la couleur bleue du ciel.
-
-### Arguments et Contre-Arguments
-
-Les flat-earthers citent l'**absence de courbure visible** a l'oeil nu, le fait que l'eau *"cherche toujours son niveau"*, et l'impossibilite ressentie de se tenir *"a l'envers"* sur une sphere. Les scientifiques repondent par la **gravite**, les photographies depuis l'espace, la navigation maritime, les fuseaux horaires et les observations astronomiques reproductibles.
-
-La communaute scientifique considere unanimement la Terre plate comme une **pseudo-science** contredite par des siecles d'observations. Mais pour ses adeptes, cette unanimite meme est suspecte et constitue la preuve d'un **consensus fabrique**.
-
-### Conclusion
-
-Qu'elle soit prise au serieux ou consideree comme un phenomene sociologique fascinant, la theorie de la Terre plate revele une **crise de confiance profonde** envers les institutions scientifiques et gouvernementales. Elle nous rappelle que dans l'ere de l'information, la verite est souvent une question de perspective, au sens propre comme au figure."""
-
-    slug_1 = slugify("La Terre Plate et le Mur de Glace Antarctique")
-    article_1 = {
-        "title": "La Terre Plate et le Mur de Glace Antarctique",
-        "title_lower": "la terre plate et le mur de glace antarctique",
-        "slug": slug_1,
-        "summary": truncate_text("Exploration de la theorie de la Terre plate, du mur de glace antarctique, du Traite de 1959, de l'Operation Highjump et de la conspiration NASA.", 200),
-        "content": content_1,
-        "content_html": render_markdown(content_1),
-        "category": "science",
-        "tags": ["terre-plate", "antarctique", "mur-de-glace", "flat-earth", "nasa"],
-        "sources": [
-            {"title": "The Flat Earth Society", "url": "https://www.tfes.org/", "type": "archive"},
-            {"title": "Traite de l'Antarctique (1959)", "url": "https://www.ats.aq/", "type": "officiel"},
-        ],
-        "related_articles": [],
-        "author_uid": current_user.uid,
-        "author_username": author_username,
-        "generated_by_ai": False,
-        "ai_model": "",
-        "status": "published",
-        "credibility": "speculatif",
-        "classification": "confidentiel",
-        "views": random.randint(50, 5000),
-        "upvotes": random.randint(5, 500),
-        "downvotes": random.randint(0, 50),
-        "comment_count": 0,
-        "created_at": timestamps[0],
-        "updated_at": timestamps[0],
-        "featured": True,
-        "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/13/Orlando-Ferguson-flat-earth-map_edit.jpg/640px-Orlando-Ferguson-flat-earth-map_edit.jpg",
-    }
-
-    # =========================================================================
-    # ARTICLE 2 : L'Affaire Jeffrey Epstein - Le Reseau des Puissants
-    # =========================================================================
-    content_2 = """### Introduction
-
-L'affaire Jeffrey Epstein est sans doute le **plus grand scandale de pedocriminalite** impliquant les elites mondiales de l'histoire moderne. Financier americain, condamne une premiere fois en 2008 dans des conditions scandaleusement clemente, Epstein a ete retrouve mort dans sa cellule le **10 aout 2019** dans des circonstances que beaucoup jugent impossibles. Son reseau de trafic sexuel impliquant des mineures met en lumiere un systeme de corruption et de protection au plus haut niveau du pouvoir.
-
-### Le Reseau Epstein
-
-Jeffrey Epstein, ne en 1953 a Brooklyn, a bati une fortune dont l'origine reste **largement inexpliquee**. Ancien professeur de mathematiques a la Dalton School de New York, il est devenu gestionnaire de fortune pour les ultra-riches, notamment le milliardaire **Leslie Wexner**, fondateur de L Brands (Victoria's Secret), qui lui a cede une propriete a Manhattan estimee a **77 millions de dollars**.
-
-Epstein possedait un veritable **empire immobilier** : un hotel particulier a New York (East 71st Street), un ranch au Nouveau-Mexique (Zorro Ranch), un appartement a Paris, et surtout deux iles privees dans les Iles Vierges americaines, dont la tristement celebre **Little Saint James**, surnommee *"Pedophile Island"* ou *"Orgy Island"*.
-
-### Little Saint James et le Temple Mysterieux
-
-L'ile de Little Saint James, d'une superficie d'environ **28 hectares**, abritait des infrastructures troublantes. Les images satellites revelent un **temple bleu et blanc** de style oriental dont la fonction n'a jamais ete clairement etablie. Des temoignages de victimes evoquent des **abus systematiques** sur l'ile, ou des mineures etaient amenees regulierement.
-
-Des **cameras de surveillance** etaient dissimulees dans toutes les pieces, suggerant qu'Epstein enregistrait ses invites dans des situations compromettantes a des fins de **chantage** potentiel. Cette hypothese est soutenue par plusieurs enqueteurs et victimes.
-
-### Le Lolita Express
-
-L'avion prive d'Epstein, un **Boeing 727** surnomme le *"Lolita Express"*, a effectue des centaines de vols entre 1997 et 2005 selon les **registres de vol** rendus publics. Parmi les passagers frequents figurent des noms retentissants :
-
-- **Bill Clinton** : au moins **26 vols** documentes, dont plusieurs sans son detail de Secret Service
-- **Prince Andrew** (duc d'York) : photographie a plusieurs reprises avec Epstein et accuse formellement par **Virginia Giuffre**
-- **Bill Gates** : plusieurs rencontres documentees avec Epstein **apres** sa premiere condamnation de 2008
-- **Donald Trump** : cite comme ami d'Epstein dans les annees 1990, declare en 2002 qu'Epstein aimait les femmes *"du cote jeune"*
-- **Alan Dershowitz** : avocat celebre, accuse par des victimes
-
-### La Mort Suspecte au MCC de Manhattan
-
-Le 10 aout 2019, Jeffrey Epstein est retrouve mort dans sa cellule du **Metropolitan Correctional Center** (MCC) de Manhattan. Le verdict officiel : **suicide par pendaison**. Mais les circonstances sont extraordinairement suspectes :
-
-- Epstein avait ete retire de la **surveillance anti-suicide** seulement 12 jours apres une premiere tentative
-- Les **deux gardiens** assignes a sa surveillance se sont endormis et ont **falsifie les registres**
-- Les **cameras de securite** devant sa cellule ont *"dysfonctionne"* exactement cette nuit-la
-- Le medecin legiste prive engage par la famille, **Dr. Michael Baden**, a constate des fractures de l'os hyoide plus compatibles avec un **stranglement** qu'un suicide
-- Son codtenu avait ete **transfere** la veille, le laissant seul en cellule
-
-L'expression **"Epstein didn't kill himself"** est devenue un phenomene culturel mondial, exprimant le scepticisme generalise face a la version officielle.
-
-### Ghislaine Maxwell et le Role de Recruteuse
-
-**Ghislaine Maxwell**, fille du magnat de la presse **Robert Maxwell** (lui-meme mort dans des circonstances mysterieuses en 1991, soupconnees de liens avec le **Mossad**, le MI6 et le KGB), a ete la **principale recruteuse** du reseau Epstein. Condamnee en juin 2022 a **20 ans de prison**, elle a ete reconnue coupable de trafic sexuel de mineures.
-
-Les liens entre Robert Maxwell et les services de renseignement israeliens alimentent la theorie selon laquelle Epstein aurait ete un **agent d'influence** utilisant le chantage sexuel comme outil de controle politique pour le compte du **Mossad** ou de la **CIA**.
-
-### Le Carnet Noir
-
-Le *"petit carnet noir"* d'Epstein, obtenu par son ancien majordome **Alfredo Rodriguez** (qui a tente de le vendre 50 000 dollars), contient les coordonnees de plus de **1 500 personnalites** : chefs d'Etat, PDG, artistes, scientifiques. La possession de ces contacts ne signifie pas necessairement une implication dans les crimes d'Epstein, mais l'ampleur du reseau est vertigineuse.
-
-### Les Zones d'Ombre Persistantes
-
-Plusieurs questions restent sans reponse :
-
-- **D'ou venait reellement la fortune d'Epstein ?** Aucun client n'a jamais confirme publiquement lui avoir confie de l'argent en dehors de Wexner.
-- **Qui a commande son elimination ?** Si c'en etait une.
-- **Pourquoi les enquetes ont-elles ete si lentes et indulgentes pendant des decennies ?**
-- **Combien de victimes au total ?** Les estimations vont de dizaines a des centaines.
-
-### Conclusion
-
-L'affaire Epstein est un cas d'ecole ou les **faits documentes** sont deja si graves qu'ils depassent la plupart des theories du complot. Les documents judiciaires, les temoignages des victimes et les preuves materielles dessinent le portrait d'un systeme de predation protege par les plus hautes spheres du pouvoir. La question n'est plus de savoir *si* un reseau existait, mais *jusqu'ou* il s'etendait et *qui* le protegeait reellement."""
-
-    slug_2 = slugify("L'Affaire Jeffrey Epstein - Le Reseau des Puissants")
-    article_2 = {
-        "title": "L'Affaire Jeffrey Epstein - Le Reseau des Puissants",
-        "title_lower": "l'affaire jeffrey epstein - le reseau des puissants",
-        "slug": slug_2,
-        "summary": truncate_text("Enquete sur le reseau de Jeffrey Epstein, le Lolita Express, l'ile Little Saint James, sa mort suspecte et les liens avec les elites mondiales.", 200),
-        "content": content_2,
-        "content_html": render_markdown(content_2),
-        "category": "politique",
-        "tags": ["epstein", "trafic", "elite", "lolita-express", "pedocriminalite"],
-        "sources": [
-            {"title": "Acte d'accusation SDNY 2019", "url": "https://www.justice.gov/usao-sdny/pr/jeffrey-epstein-charged-manhattan-federal-court-sex-trafficking-minors", "type": "officiel"},
-            {"title": "Documents judiciaires - Ghislaine Maxwell", "url": "https://www.courtlistener.com/docket/4355835/giuffre-v-maxwell/", "type": "document"},
-            {"title": "Flight logs Lolita Express", "url": "https://www.documentcloud.org/documents/1507315-epstein-flight-manifests.html", "type": "document"},
-        ],
-        "related_articles": [],
-        "author_uid": current_user.uid,
-        "author_username": author_username,
-        "generated_by_ai": False,
-        "ai_model": "",
-        "status": "published",
-        "credibility": "documente",
-        "classification": "top-secret",
-        "views": random.randint(50, 5000),
-        "upvotes": random.randint(5, 500),
-        "downvotes": random.randint(0, 50),
-        "comment_count": 0,
-        "created_at": timestamps[1],
-        "updated_at": timestamps[1],
-        "featured": True,
-        "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a0/Aerial_image_of_Little_Saint_James_Island.jpg/640px-Aerial_image_of_Little_Saint_James_Island.jpg",
-    }
-
-    # =========================================================================
-    # ARTICLE 3 : Les Emails et Documents Epstein Declassifies
-    # =========================================================================
-    content_3 = """### Introduction
-
-En janvier 2024, une decision judiciaire historique a ordonne la **declassification de centaines de documents** lies a l'affaire Jeffrey Epstein, issus principalement du proces **Giuffre contre Maxwell**. Ces documents, longtemps scelles, ont revele des noms, des temoignages et des details que le public attendait depuis des annees. Mais la realite des revelations a ete plus nuancee que ce que beaucoup esperaient.
-
-### La Declassification de 2024
-
-Le juge **Loretta Preska** du tribunal federal du district sud de New York a ordonne la publication echelonnee de plus de **900 pages** de documents precedemment scelles. Cette decision faisait suite a des annees de batailles juridiques menees par le **Miami Herald** et d'autres medias invoquant le droit du public a l'information.
-
-Les documents comprenaient des **depositions**, des **emails**, des **notes internes** et des **temoignages sous serment** provenant principalement du proces civil intente par Virginia Giuffre contre Ghislaine Maxwell en 2015.
-
-### Les Noms Reveles
-
-Plus de **150 personnes** sont mentionnees dans les documents declassifies, mais il est crucial de comprendre que **etre nomme ne signifie pas etre accuse**. Parmi les noms les plus mediatises :
-
-- **Prince Andrew** : les depositions detaillent des rencontres avec Virginia Giuffre, confirmant des temoignages anterieurs
-- **Bill Clinton** : mentionne a plusieurs reprises, notamment dans des temoignages de victimes placant sa presence sur l'ile
-- **Alan Dershowitz** : nomme directement dans des accusations de contacts sexuels avec des mineures, qu'il nie categoriement
-- **Jean-Luc Brunel** : le mannequin-scout francais retrouve mort dans sa cellule a Paris en **fevrier 2022**, un autre *"suicide"* controversé
-- **Stephen Hawking** : mentionne dans un contexte non accusatoire, provoquant neanmoins un emoi mediatique
-
-### La Controverse de la "Liste Epstein"
-
-L'expression **"liste Epstein"** est devenue virale sur les reseaux sociaux, creant l'attente d'un document unique revelant tous les complices. En realite, une telle liste **n'existe pas** sous cette forme. Les documents declassifies sont un ensemble heterogene de pieces judiciaires ou des noms apparaissent dans des contextes tres differents : certains comme **temoins**, d'autres comme **accuses**, d'autres encore simplement **mentionnes** dans des conversations.
-
-Cette confusion a ete exploitee pour des **campagnes de desinformation** et des reglement de comptes politiques, chaque camp designant les adversaires de l'autre comme *"sur la liste"*.
-
-### Les Depositions des Victimes
-
-Les temoignages les plus poignants des documents sont ceux des **victimes**. Johanna Sjoberg, Virginia Giuffre et d'autres femmes decrivent avec des details precis le **systeme de recrutement** mis en place par Maxwell et Epstein :
-
-- Approche de jeunes filles vulnerables (souvent issues de milieux defavorises)
-- Promesses de **carriere dans le mannequinat** ou d'aide financiere
-- Premiers *"massages"* evoluant vers des **abus sexuels**
-- Pressions psychologiques et **recompenses financieres** pour recruter d'autres victimes
-- Menaces et intimidation pour maintenir le **silence**
-
-### Les Accords de Non-Divulgation (NDA)
-
-Les documents revelent l'existence de nombreux **NDA** (Non-Disclosure Agreements) signes entre les victimes et Epstein dans le cadre d'accords financiers. Ces accords, assortis de **compensations allant de 100 000 a plusieurs millions de dollars**, interdisaient aux victimes de parler publiquement de leurs experiences.
-
-L'accord le plus scandaleux reste le **Non-Prosecution Agreement** de 2008 negocie par l'avocat **Alexander Acosta** (futur secretaire au Travail de Trump), qui a accorde a Epstein et a ses **co-conspirateurs nommes et non nommes** une immunite federale en echange d'un plaidoyer de culpabilite sur des charges mineures de l'Etat de Floride.
-
-### Ce que les Documents Montrent vs les Attentes
-
-Le public esperait des **revelations explosives** nommant des dizaines de complices celebres. La realite fut plus complexe :
-
-**Ce qui a ete confirme :**
-- L'ampleur du reseau de recrutement
-- L'implication directe de Maxwell dans les abus
-- Les liens documentees entre Epstein et de nombreuses personnalites
-- Le caractere systematique et organise du trafic
-
-**Ce qui reste flou :**
-- Le role exact de chaque personnalite nommee
-- L'etendue reelle du reseau de chantage
-- Les liens avec les services de renseignement
-- L'origine de la fortune d'Epstein
-
-### Conclusion
-
-La declassification des documents Epstein a constitue une etape importante pour la **transparence judiciaire**, mais n'a pas apporte le *"grand devoilement"* espere par beaucoup. Les documents confirment l'existence d'un **reseau criminel sophistique** protege par l'argent et le pouvoir, tout en laissant de nombreuses questions sans reponse. La verite complete sur l'affaire Epstein reste, pour l'heure, **enfouie sous des couches de secret, de pouvoir et de silence**."""
-
-    slug_3 = slugify("Les Emails et Documents Epstein Declassifies")
-    article_3 = {
-        "title": "Les Emails et Documents Epstein Declassifies",
-        "title_lower": "les emails et documents epstein declassifies",
-        "slug": slug_3,
-        "summary": truncate_text("Analyse des documents Epstein declassifies en 2024 : noms reveles, depositions des victimes, la controverse de la 'liste Epstein' et les NDA.", 200),
-        "content": content_3,
-        "content_html": render_markdown(content_3),
-        "category": "politique",
-        "tags": ["epstein", "emails", "documents", "declassification", "victimes"],
-        "sources": [
-            {"title": "PACER - US Court Records", "url": "https://www.pacer.gov/", "type": "officiel"},
-            {"title": "Unsealed Epstein documents 2024", "url": "https://storage.courtlistener.com/recap/gov.uscourts.nysd.447706/", "type": "document"},
-        ],
-        "related_articles": [],
-        "author_uid": current_user.uid,
-        "author_username": author_username,
-        "generated_by_ai": False,
-        "ai_model": "",
-        "status": "published",
-        "credibility": "documente",
-        "classification": "secret",
-        "views": random.randint(50, 5000),
-        "upvotes": random.randint(5, 500),
-        "downvotes": random.randint(0, 50),
-        "comment_count": 0,
-        "created_at": timestamps[2],
-        "updated_at": timestamps[2],
-        "featured": True,
-        "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Handwritten_document.jpg/480px-Handwritten_document.jpg",
-    }
-
-    # =========================================================================
-    # ARTICLE 4 : La Franc-Maconnerie - Les Architectes de l'Ombre
-    # =========================================================================
-    content_4 = """### Introduction
-
-La **franc-maconnerie** est sans doute la **societe secrete la plus ancienne et la plus influente** encore en activite aujourd'hui. Avec une histoire remontant aux **guildes de batisseurs de cathedrales** du Moyen Age, elle a evolue en un reseau mondial de loges et d'obediences dont l'influence sur la politique, la culture et la finance est alternativement niee, minimisee ou exageree.
-
-### Des Batisseurs de Cathedrales aux Loges Modernes
-
-Les origines de la franc-maconnerie sont enveloppees de mystere. La version historique consensuelle la fait remonter aux **guildes de macons operatifs** du Moyen Age, ces artisans specialises dans la construction des cathedrales gothiques. Ces guildes possedaient des **secrets de metier** (techniques de taille de pierre, calculs architecturaux) qu'elles transmettaient par des rituels d'initiation.
-
-La transition vers la maconnerie **speculative** (philosophique et non plus operationnelle) s'est faite progressivement aux XVIIe et XVIIIe siecles. La fondation de la **Grande Loge de Londres** en **1717** est generalement consideree comme l'acte de naissance de la franc-maconnerie moderne. La **Constitution d'Anderson** de 1723 a codifie les principes fondamentaux : tolerance, fraternite, progres moral et recherche de la verite.
-
-### La Hierarchie et les Degres
-
-La franc-maconnerie est organisee en **degres d'initiation** :
-
-**Les 3 degres fondamentaux (Rite Bleu) :**
-- **Apprenti** : le neophyte, qui apprend les rudiments du symbolisme
-- **Compagnon** : l'initie qui approfondit sa quete
-- **Maitre** : le grade culminant, associe a la legende d'**Hiram Abiff**, l'architecte du Temple de Salomon
-
-**Les hauts grades :**
-- Le **Rite Ecossais Ancien et Accepte** comporte **33 degres**, dont le 33e est un grade honorifique reserve a une elite
-- Le **Rite de York** propose une voie alternative avec ses propres degres
-- Chaque degre est associe a des **rituels specifiques**, des mots de passe et des signes de reconnaissance
-
-### Membres Celebres
-
-La liste des francs-macons celebres est vertigineuse :
-
-- **Voltaire** : initie a la loge *Les Neuf Soeurs* a Paris en 1778, peu avant sa mort
-- **George Washington** : premier president des Etats-Unis, maitre de sa loge en Virginie
-- **Benjamin Franklin** : Grand Maitre de la loge de Pennsylvanie et membre des *Neuf Soeurs* a Paris
-- **Wolfgang Amadeus Mozart** : membre de la loge *Zur Wohlthatigkeit* a Vienne, *La Flute enchantee* est remplie de symbolisme maconnique
-- **Napoleon Bonaparte** : bien que son statut de franc-macon soit debattu, ses freres Joseph et Jerome l'etaient certainement
-- **Winston Churchill** : initie en 1901 a la loge *Studholme Alliance*
-
-### Les Symboles
-
-Le **symbolisme maconnique** est omnipresent et souvent mal interprete :
-
-- **L'equerre et le compas** : les outils du macon, representant la **matiere et l'esprit**, la rectitude morale et les limites que l'on s'impose
-- **L'Oeil de la Providence** (Oeil qui voit tout) : symbole de la conscience divine, present sur le billet d'un dollar americain
-- **La pyramide tronquee** : symbolisant le travail inacheve de l'humanite vers la perfection
-- **Le pavage mosaique** (damier noir et blanc) : la dualite du monde, bien et mal, lumiere et tenebres
-- **La lettre G** : diversement interpretee comme God (Dieu), Geometrie ou Gnose
-
-### Le Grand Orient de France et la Politique
-
-En France, le **Grand Orient de France** (GODF), fonde en 1773, est la plus grande obedience maconnique. Contrairement a la maconnerie anglo-saxonne, le GODF est **adogmatique** : il n'exige pas la croyance en un Etre Supreme.
-
-Son influence sur la politique francaise est **documentee et considerable** :
-- La loi de **separation de l'Eglise et de l'Etat** (1905) a ete largement preparee dans les loges
-- L'**affaire des fiches** (1904) a revele que le GODF surveillait les opinions religieuses des officiers de l'armee
-- De nombreux presidents de la Republique etaient francs-macons, ainsi que des dizaines de ministres et parlementaires
-- La **laicite** a la francaise est en grande partie une creation maconnique
-
-### Le Scandale de la Loge P2
-
-En Italie, la **Propaganda Due** (P2), dirigee par **Licio Gelli**, a ete au coeur de l'un des plus grands scandales de l'apres-guerre. Decouverte en 1981, cette loge clandestine comptait parmi ses membres des **ministres, generaux, chefs des services secrets, banquiers** (dont Roberto Calvi, retrouve pendu sous le pont de Blackfriars a Londres) et meme **Silvio Berlusconi**. La P2 etait impliquee dans des tentatives de **coup d'Etat** et des liens avec la **mafia** et l'**Operation Gladio** de l'OTAN.
-
-### Theories et Realite
-
-Les theories du complot attribuent aux francs-macons un **controle mondial** coordonne. La realite est plus nuancee : la franc-maconnerie est un **reseau d'influence** puissant mais fragmentee, divise en obediences souvent rivales. Son influence est reelle dans certains secteurs (justice, politique, affaires), mais l'idee d'un **gouvernement maconnique mondial unifie** releve davantage du mythe que de la realite documentee.
-
-### Conclusion
-
-La franc-maconnerie reste une institution fascinante a la frontiere entre le **secret et le pouvoir**, la **philosophie et la politique**. Son influence historique est indeniable, son fonctionnement actuel plus prosaic que ne le suggerent les theories du complot. Mais tant qu'elle conservera ses rituels et son gout du secret, elle continuera d'alimenter les fantasmes les plus elabores."""
-
-    slug_4 = slugify("La Franc-Maconnerie - Les Architectes de l'Ombre")
-    article_4 = {
-        "title": "La Franc-Maconnerie - Les Architectes de l'Ombre",
-        "title_lower": "la franc-maconnerie - les architectes de l'ombre",
-        "slug": slug_4,
-        "summary": truncate_text("Histoire de la franc-maconnerie, des guildes medievales aux loges modernes : hierarchie, symboles, membres celebres, influence politique et scandales.", 200),
-        "content": content_4,
-        "content_html": render_markdown(content_4),
-        "category": "occultisme",
-        "tags": ["franc-maconnerie", "illuminati", "loge", "grand-orient", "symboles"],
-        "sources": [
-            {"title": "Grand Orient de France - Site officiel", "url": "https://www.godf.org/", "type": "officiel"},
-            {"title": "Constitution d'Anderson (1723)", "url": "https://freemasonry.bcy.ca/texts/anderson1723.html", "type": "archive"},
-        ],
-        "related_articles": [],
-        "author_uid": current_user.uid,
-        "author_username": author_username,
-        "generated_by_ai": False,
-        "ai_model": "",
-        "status": "published",
-        "credibility": "documente",
-        "classification": "confidentiel",
-        "views": random.randint(50, 5000),
-        "upvotes": random.randint(5, 500),
-        "downvotes": random.randint(0, 50),
-        "comment_count": 0,
-        "created_at": timestamps[3],
-        "updated_at": timestamps[3],
-        "featured": True,
-        "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Masonic_SquareCompassesG.svg/480px-Masonic_SquareCompassesG.svg.png",
-    }
-
-    # =========================================================================
-    # ARTICLE 5 : Les Illuminati de Baviere - Du Mythe a la Realite
-    # =========================================================================
-    content_5 = """### Introduction
-
-Aucun nom n'evoque autant le **complot mondial** que celui des *Illuminati*. De Jay-Z formant un triangle avec ses mains a l'oeil sur le billet d'un dollar, les references aux Illuminati sont omnipresntes dans la culture populaire. Mais qui etaient reellement les Illuminati, et comment un ordre secret bavarois du XVIIIe siecle est-il devenu le symbole ultime de la **conspiration mondiale** ?
-
-### Adam Weishaupt et la Fondation de l'Ordre
-
-Le **1er mai 1776** (date qui alimente a elle seule d'innombrables theories), le professeur de droit canonique **Adam Weishaupt** fonde l'**Ordre des Illumines de Baviere** (*Illuminatenorden*) a l'universite d'Ingolstadt. Weishaupt, decu par l'obscurantisme religieux des Jesuites qui dominaient l'education bavaroise, cree un ordre voue a des ideaux **rationalistes et progressistes** :
-
-- Opposition a la **superstition** et au dogmatisme religieux
-- Lutte contre l'**abus de pouvoir** de l'Etat et de l'Eglise
-- Promotion de l'**education** et de la raison
-- Egalite entre les classes sociales
-
-L'ordre comptait au sommet de son influence environ **2 000 membres** dans toute l'Europe, dont des aristocrates, des intellectuels et des fonctionnaires. Le baron **Adolph von Knigge** fut l'un de ses recruteurs les plus efficaces.
-
-### Infiltration des Loges Maconniques
-
-La strategie des Illuminati fut d'**infiltrer les loges franc-maconnes** existantes pour diffuser leurs idees. Cette tactique fonctionna remarquablement bien, au point que de nombreux macons ignoraient qu'ils avaient ete recrutes par les Illuminati. Cette fusion explique en partie pourquoi les deux organisations sont si souvent confondues dans les theories du complot contemporaines.
-
-### L'Interdiction de 1785 et la Dispersion
-
-En 1784-1785, le duc-electeur de Baviere **Charles Theodore** interdit toutes les societes secretes, dont les Illuminati. Des documents internes sont saisis et publies, revelant les rituels et les objectifs de l'ordre. Weishaupt fuit en exil. Officiellement, l'ordre des Illuminati **cesse d'exister**.
-
-Mais pour les theoriciens du complot, cette dissolution n'etait qu'une **facade**. L'ordre aurait simplement plonge dans une clandestinite plus profonde, continuant son action a travers d'autres organisations.
-
-### L'Oeil de la Providence et le Dollar Americain
-
-L'element le plus cite comme *"preuve"* de l'existence actuelle des Illuminati est l'**Oeil de la Providence** surmontant une pyramide tronquee au verso du billet d'un dollar americain. Ce symbole, integre au **Grand Sceau des Etats-Unis** en 1782, est accompagne de la devise latine **"Novus Ordo Seclorum"** (*Nouvel Ordre des Siecles*), que les conspirationnistes traduisent par *"Nouvel Ordre Mondial"*.
-
-Les historiens notent que :
-- L'Oeil de la Providence est un **symbole chretien** ancien, representant Dieu veillant sur l'humanite
-- La pyramide symbolise la **force et la duree**
-- Les 13 etages representent les **13 colonies originelles**
-- La devise est tiree des *Bucoliques* de **Virgile** et fait reference a un nouvel age, pas a un gouvernement mondial
-- Le symbole a ete adopte **avant** que les Illuminati ne soient connus aux Etats-Unis
-
-### Les Theories Modernes
-
-Au XXe et XXIe siecles, les Illuminati sont devenus un **concept fourre-tout** englobant toute forme de conspiration elitiste :
-
-**L'industrie musicale :** Des artistes comme **Jay-Z**, **Beyonce**, **Rihanna** et **Lady Gaga** sont regulierement accuses d'etre des *"pantins des Illuminati"* en raison de leur utilisation de symboles (triangles, oeil unique, pyramides) dans leurs clips et performances. Le signe du triangle forme par les mains (le *"Roc Sign"* de Jay-Z, en realite le logo de son label Roc-A-Fella Records) est devenu **le** geste illuminati par excellence.
-
-**Les rituels de celebritees :** Les ceremonies des Grammy Awards, du Super Bowl ou des Jeux Olympiques sont decortiquees image par image a la recherche de **symbolisme occulte** cache. Certains y voient des **rituels sataniques** deguises en divertissement de masse.
-
-**Le Bohemian Grove :** Ce club prive californien ou se reunissent chaque ete les hommes les plus puissants d'Amerique (presidents, PDG, banquiers) pour un rituel nocturne appele la **"Cremation of Care"** devant une statue de hibou geant est souvent lie aux Illuminati.
-
-### Faits et Fantasmes
-
-La frontiere entre realite historique et fantasme est ici particulierement floue :
-
-**Ce qui est historiquement vrai :**
-- Les Illuminati de Baviere ont existe de 1776 a 1785
-- Ils ont reellement cherche a influencer la politique par l'infiltration
-- Leurs objectifs etaient progressistes et anticléricaux
-
-**Ce qui est speculatif :**
-- Leur survie apres 1785
-- Leur role dans la Revolution francaise
-- L'existence d'un ordre illuminati contemporain
-
-**Ce qui releve du mythe :**
-- Le controle de l'industrie musicale
-- Les rituels sataniques televises
-- Un gouvernement mondial secret
-
-### Conclusion
-
-Les Illuminati de Baviere furent un **phenomene historique reel mais ephemere**. Leur transformation en mythe conspirrationniste mondial temoigne de notre besoin profond de donner un **visage et un nom** aux forces qui semblent gouverner le monde dans l'ombre. Que l'on y croie ou non, le simple fait que le mot *"Illuminati"* provoque encore autant de fascination, **240 ans** apres leur dissolution, est en soi un phenomene remarquable."""
-
-    slug_5 = slugify("Les Illuminati de Baviere - Du Mythe a la Realite")
-    article_5 = {
-        "title": "Les Illuminati de Baviere - Du Mythe a la Realite",
-        "title_lower": "les illuminati de baviere - du mythe a la realite",
-        "slug": slug_5,
-        "summary": truncate_text("Des Illumines de Baviere d'Adam Weishaupt en 1776 au mythe mondial : l'Oeil de la Providence, le dollar, l'industrie musicale et le Bohemian Grove.", 200),
-        "content": content_5,
-        "content_html": render_markdown(content_5),
-        "category": "occultisme",
-        "tags": ["illuminati", "baviere", "weishaupt", "nouvel-ordre-mondial", "oeil"],
-        "sources": [
-            {"title": "Adam Weishaupt et les Illumines de Baviere", "url": "https://www.britannica.com/topic/Illuminati", "type": "archive"},
-            {"title": "Novus Ordo Seclorum - Billet d'un dollar", "url": "https://www.treasury.gov/", "type": "officiel"},
-        ],
-        "related_articles": [],
-        "author_uid": current_user.uid,
-        "author_username": author_username,
-        "generated_by_ai": False,
-        "ai_model": "",
-        "status": "published",
-        "credibility": "speculatif",
-        "classification": "secret",
-        "views": random.randint(50, 5000),
-        "upvotes": random.randint(5, 500),
-        "downvotes": random.randint(0, 50),
-        "comment_count": 0,
-        "created_at": timestamps[4],
-        "updated_at": timestamps[4],
-        "featured": True,
-        "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f5/Eye_of_Providence.svg/480px-Eye_of_Providence.svg.png",
-    }
-
-    # =========================================================================
-    # ARTICLE 6 : La Dynastie Rothschild - L'Empire Financier Invisible
-    # =========================================================================
-    content_6 = """### Introduction
-
-Le nom **Rothschild** est synonyme de **richesse et de pouvoir** depuis plus de deux siecles. Cette dynastie bancaire, fondee dans le ghetto juif de Francfort au XVIIIe siecle, a bati un empire financier qui a **finance des guerres, cree des nations et influence le cours de l'histoire**. Pour les theoriciens du complot, les Rothschild incarnent l'archetype de l'**elite financiere invisible** qui tire les ficelles du monde.
-
-### Mayer Amschel Rothschild et les Cinq Fils
-
-L'histoire commence avec **Mayer Amschel Rothschild** (1744-1812), cambiste et marchand de pieces dans la *Judengasse* (ruelle des Juifs) de Francfort. Son genie fut de placer ses **cinq fils** dans les cinq plus grandes capitales financieres d'Europe, creant le premier **reseau bancaire international** de l'histoire :
-
-- **Amschel Mayer** a **Francfort**
-- **Salomon** a **Vienne**
-- **Nathan Mayer** a **Londres** (la branche la plus puissante)
-- **Carl** a **Naples**
-- **James** a **Paris**
-
-Ce reseau familial permettait des transferts de fonds et d'informations a une vitesse **inegalee pour l'epoque**, grace a un systeme de **courriers prives** et de messages codes. Cette avance informationnelle etait leur arme secrete.
-
-### La Legende de Waterloo
-
-L'episode le plus celebre et le plus conteste de l'histoire Rothschild concerne la **bataille de Waterloo** en 1815. Selon la legende, **Nathan Mayer Rothschild** a Londres aurait appris la defaite de Napoleon **un jour avant** le gouvernement britannique grace a son reseau de courriers. Il aurait alors **vendu massivement** ses titres a la Bourse de Londres, provoquant une panique. Les autres investisseurs, croyant que Napoleon avait gagne, auraient vendu dans la panique. Les agents de Rothschild auraient alors **rachete a prix derisoire** avant que la nouvelle de la victoire ne fasse remonter les cours, realisant un **profit colossal**.
-
-Les historiens debattent de la veracite de cet episode. **Niall Ferguson**, biographe autorise des Rothschild, confirme que Nathan avait effectivement recu la nouvelle en avance, mais conteste l'ampleur de la speculation. D'autres sources suggerent que l'histoire a ete **largement embellie** au fil du temps.
-
-### Le Financement des Guerres
-
-L'une des accusations les plus recurrentes contre les Rothschild est d'avoir **finance les deux camps** dans de nombreux conflits :
-
-- **Guerres napoleoniennes** : prets aux gouvernements britannique et autrichien tout en maintenant des relations commerciales avec la France
-- **Guerre de Crimee** (1853-1856) : financement de la Grande-Bretagne et de la France
-- **Guerre franco-prussienne** (1870-1871) : la branche parisienne et la branche francfortoise dans des camps opposes
-- **Premiere Guerre mondiale** : des branches de la famille dans chaque camp belligerant
-
-Cette strategie, si elle est averee dans toute son ampleur, representerait le cynisme financier ultime : **profiter de la destruction** quelle que soit l'issue du conflit.
-
-### Les Banques Centrales et la Reserve Federale
-
-Pour les conspirationnistes, le pouvoir supreme des Rothschild reside dans leur **controle suppose des banques centrales**. La citation attribuee (probablement apocryphe) a Mayer Amschel Rothschild resume cette theorie : *"Donnez-moi le controle de la monnaie d'une nation, et je me moque de qui fait ses lois."*
-
-La creation de la **Reserve Federale americaine** en **1913** est un point focal de ces theories. La reunion secrete de **Jekyll Island** (novembre 1910), ou six banquiers et un senateur ont redige le projet de la Fed, incluait **Paul Warburg**, associe de la banque Kuhn, Loeb & Co., liee aux Rothschild par des mariages et des affaires. Pour les theoriciens, cela prouve que la Fed est une **creation Rothschild** deguisee en institution publique.
-
-### Emmanuel Macron et la Connexion Francaise
-
-En France, le lien entre **Emmanuel Macron** et la banque **Rothschild & Co** est un fait public : le futur president y a travaille comme **banquier d'affaires** de 2008 a 2012, pilotant notamment le rachat de **Pfizer Nutrition** par **Nestle** pour 9 milliards d'euros. Cette connexion alimente en permanence les theories sur l'influence des Rothschild sur la politique francaise.
-
-Les defenseurs de Macron soulignent qu'il etait un employe parmi d'autres ; ses critiques y voient la preuve qu'il a ete **"fabrique"** par la finance pour acceder au pouvoir.
-
-### Le Blason et la Devise
-
-Le blason des Rothschild porte **cinq fleches** tenues dans un poing, representant les cinq fils et leur union. La devise familiale, *"Concordia, Integritas, Industria"* (Concorde, Integrite, Industrie), est vue par les conspirationnistes comme un **code** dissimulant leur veritable ambition : le controle financier mondial.
-
-### Fortune et Patrimoine
-
-Estimer la fortune des Rothschild est extremement difficile. Les estimations vont de quelques milliards a **plusieurs centaines de milliards** de dollars, repartis entre des dizaines de branches familiales, des fondations, des holdings et des trusts opaques. La famille possede des **vignobles** (Chateau Lafite, Chateau Mouton), des **collections d'art** parmi les plus importantes au monde, et des proprietes immobilieres dans les capitales europeennes.
-
-### Conclusion
-
-La dynastie Rothschild est un cas fascinant ou la **realite historique** nourrit les theories les plus extravagantes. Leur influence sur la finance europeenne des XIXe et XXe siecles est **incontestable et documentee**. Mais l'image d'une famille omnipotente controlant secretement l'economie mondiale depuis 250 ans releve davantage du **mythe** que de la realite contemporaine, ou leur empire, bien que toujours considerable, fait face a des concurrents bien plus puissants comme **BlackRock, Vanguard** ou les fonds souverains du Golfe."""
-
-    slug_6 = slugify("La Dynastie Rothschild - L'Empire Financier Invisible")
-    article_6 = {
-        "title": "La Dynastie Rothschild - L'Empire Financier Invisible",
-        "title_lower": "la dynastie rothschild - l'empire financier invisible",
-        "slug": slug_6,
-        "summary": truncate_text("La dynastie Rothschild : des cinq fils dans cinq capitales au controle suppose des banques centrales, en passant par Waterloo et Emmanuel Macron.", 200),
-        "content": content_6,
-        "content_html": render_markdown(content_6),
-        "category": "finance",
-        "tags": ["rothschild", "banque", "finance", "elite", "nouvel-ordre-mondial"],
-        "sources": [
-            {"title": "The House of Rothschild - Niall Ferguson", "url": "https://www.penguinrandomhouse.com/", "type": "media"},
-            {"title": "Banque Rothschild & Co", "url": "https://www.rothschildandco.com/", "type": "officiel"},
-        ],
-        "related_articles": [],
-        "author_uid": current_user.uid,
-        "author_username": author_username,
-        "generated_by_ai": False,
-        "ai_model": "",
-        "status": "published",
-        "credibility": "speculatif",
-        "classification": "confidentiel",
-        "views": random.randint(50, 5000),
-        "upvotes": random.randint(5, 500),
-        "downvotes": random.randint(0, 50),
-        "comment_count": 0,
-        "created_at": timestamps[5],
-        "updated_at": timestamps[5],
-        "featured": True,
-        "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Coat_of_Arms_of_the_Rothschild_family.svg/480px-Coat_of_Arms_of_the_Rothschild_family.svg.png",
-    }
-
-    # =========================================================================
-    # ARTICLE 7 : Symbolisme Occulte et Rituels dans l'Elite Mondiale
-    # =========================================================================
-    content_7 = """### Introduction
-
-Derriere les portes closes des clubs les plus exclusifs du monde, les elites politiques et financieres participeraient a des **rituels occultes** herites de traditions ancestrales. Du **Bohemian Grove** californien aux revelations du *"Spirit Cooking"*, un faisceau d'indices troublants suggere que le pouvoir mondial s'accompagne de pratiques bien eloignees de la rationalite affichee en public.
-
-### Le Bohemian Grove
-
-Le **Bohemian Grove** est un domaine de **1 100 hectares** de sequoias geants situe a Monte Rio, en Californie. Depuis **1878**, le **Bohemian Club** de San Francisco y organise chaque ete, en juillet, un rassemblement de deux semaines reunissant environ **2 700 hommes** parmi les plus puissants de la planete.
-
-**Parmi les membres et invites documentes :**
-- Les presidents **Richard Nixon**, **Ronald Reagan**, **George H.W. Bush** et **George W. Bush**
-- **Henry Kissinger**, secretaire d'Etat et figure omnipresente des cercles de pouvoir
-- **Colin Powell**, **Dick Cheney**, **Donald Rumsfeld**
-- Des PDG de Goldman Sachs, Bank of America, Bechtel, et d'innombrables entreprises du Fortune 500
-
-Le point culminant du rassemblement est la ceremonie nocturne de la **"Cremation of Care"** (*Cremation du Souci*), ou les participants se reunissent au pied d'une **statue de hibou de 12 metres** pour bruler en effigie une figure humaine symbolisant les *soucis du monde*. La ceremonie, accompagnee de torches, de robes et d'incantations, a ete filmee clandestinement en **2000 par Alex Jones**, qui s'est infiltre dans le domaine.
-
-Nixon, dans un enregistrement du Watergate, a qualifie le Bohemian Grove de *"la chose la plus mauditement faggoty que vous puissiez imaginer"*, suggerant que des pratiques sexuelles y avaient lieu. Les organisateurs insistent sur le caractere **theatral et humoristique** de l'evenement.
-
-### La Statue du Hibou : Moloch ou Minerve ?
-
-La statue de hibou geant est au coeur d'un debat : pour les conspirationnistes, elle represente **Moloch**, divinite canaanenne a qui l'on sacrifiait des enfants. Pour le Bohemian Club, il s'agit de **Minerve** (Athena), deesse de la sagesse, dont le hibou est l'attribut traditionnel. La cremation d'une effigie humaine devant cette statue evoque neanmoins des **paralleles troublants** avec les cultes antiques.
-
-### Marina Abramovic et le Spirit Cooking
-
-En **2016**, les emails de **John Podesta** (directeur de campagne de Hillary Clinton), publies par **WikiLeaks**, ont revele une invitation de l'artiste serbe **Marina Abramovic** a un diner de *"Spirit Cooking"*. Cette pratique artistique, inspiree de rituels de **Thelema** d'Aleister Crowley, implique l'utilisation de sang, de lait maternel et d'autres fluides corporels dans un contexte rituel.
-
-Les images des *"Spirit Cooking dinners"* montrant des messages ecrits avec du sang sur les murs (*"Mix fresh breast milk with fresh sperm"*) ont provoque un **scandale mondial**. Abramovic a insiste sur la dimension purement **artistique et performative** de ces evenements, mais l'association avec des personnalites politiques de premier plan a alimente les theories les plus sombres sur des **rituels sataniques** au sein de l'elite.
-
-### Skull and Bones
-
-La societe secrete **Skull and Bones** (*Tete de mort et os croises*), fondee en **1832** a l'universite de **Yale**, est l'une des plus influentes des Etats-Unis. Chaque annee, seulement **15 nouveaux membres** sont recrutes parmi les etudiants de derniere annee.
-
-**Membres celebres :**
-- **George H.W. Bush** (promotion 1948) et **George W. Bush** (promotion 1968) : pere et fils, tous deux presents, tous deux devenus presidents des Etats-Unis
-- **John Kerry** : candidat democrate a la presidentielle en 2004 face a Bush Jr., lui aussi Bonesman
-- **William Howard Taft** : 27e president des Etats-Unis
-
-Le fait que l'election presidentielle de 2004 ait oppose **deux membres de Skull and Bones** a souleve des questions legitimes sur le caractere reel de la *"democratie"* americaine. Les rituels d'initiation incluraient selon d'anciens membres des confessions intimes, des simulacres de cercueil et la veneration de reliques, dont le **crane suppose de Geronimo**, vole par Prescott Bush en 1918.
-
-### Le Culte de Saturne
-
-Une theorie plus esoterique relie les symboles de pouvoir a un ancien **culte de Saturne**. Selon ses proponents :
-
-- Le **cube noir** (symbole saturnien) apparait dans de multiples contextes : la **Kaaba** a La Mecque, les **tefillin** juifs, le cube noir de l'**Apple Store**, le logo de **BlackRock**
-- Les **anneaux de Saturne** seraient l'origine de la tradition des **alliances de mariage**
-- Le **samedi** (*Saturday* en anglais, *Saturn's Day*) serait un jour de veneration cachee
-- Le **hexagone** au pole nord de Saturne, decouvert par Voyager, serait la source de l'**etoile de David** (un hexagone inscrit)
-
-Les sceptiques font remarquer que ces associations sont des exemples classiques d'**apophenie** : la tendance a percevoir des connexions significatives dans des elements non lies.
-
-### Symboles dans les Logos d'Entreprise
-
-Les chasseurs de symboles occultes trouvent des references dans d'innombrables logos corporatifs :
-
-- **Procter & Gamble** : l'ancien logo montrait un visage dans un croissant de lune, accuse de contenir le chiffre 666 (le logo a ete change en 1985)
-- **Monster Energy** : les trois griffures du logo formeraient le chiffre **666** en hebreu (la lettre *Vav*)
-- **Starbucks** : la sirene serait un symbole occulte de **Melusine** ou d'**Ishtar**
-- **Vodafone** : le logo contiendrait un **6** cache dans le crochet de dialogue
-
-### Conclusion
-
-Le symbolisme occulte dans les spheres de pouvoir est un sujet ou se melangent **faits documentes** (Bohemian Grove existe reellement, Skull and Bones aussi), **interpretations discutables** (la signification des rituels) et **fantasmes purs** (le culte saturnien mondial). La frontiere entre art, tradition, rituel social et veritable pratique occulte reste **deliberement floue**, et c'est peut-etre la le veritable pouvoir de ces symboles : maintenir le **mystere et la fascination** qui entourent ceux qui gouvernent le monde."""
-
-    slug_7 = slugify("Symbolisme Occulte et Rituels dans l'Elite Mondiale")
-    article_7 = {
-        "title": "Symbolisme Occulte et Rituels dans l'Elite Mondiale",
-        "title_lower": "symbolisme occulte et rituels dans l'elite mondiale",
-        "slug": slug_7,
-        "summary": truncate_text("Du Bohemian Grove a Skull and Bones, du Spirit Cooking au culte de Saturne : exploration des rituels occultes au sein des elites mondiales.", 200),
-        "content": content_7,
-        "content_html": render_markdown(content_7),
-        "category": "occultisme",
-        "tags": ["occultisme", "rituels", "bohemian-grove", "satanisme", "elite"],
-        "sources": [
-            {"title": "Bohemian Grove - Alex Jones infiltration 2000", "url": "https://www.bohemiangrove.org/", "type": "archive"},
-            {"title": "Cremation of Care ceremony", "url": "https://en.wikipedia.org/wiki/Bohemian_Grove", "type": "media"},
-        ],
-        "related_articles": [],
-        "author_uid": current_user.uid,
-        "author_username": author_username,
-        "generated_by_ai": False,
-        "ai_model": "",
-        "status": "published",
-        "credibility": "speculatif",
-        "classification": "secret",
-        "views": random.randint(50, 5000),
-        "upvotes": random.randint(5, 500),
-        "downvotes": random.randint(0, 50),
-        "comment_count": 0,
-        "created_at": timestamps[6],
-        "updated_at": timestamps[6],
-        "featured": False,
-        "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a4/Baphomet.png/440px-Baphomet.png",
-    }
-
-    # =========================================================================
-    # ARTICLE 8 : MK-Ultra - Le Programme de Controle Mental de la CIA
-    # =========================================================================
-    content_8 = """### Introduction
-
-**MK-Ultra** est le nom de code d'un programme **reel et documente** de la CIA consacre au **controle mental**. Mene de **1953 a 1973**, il constitue l'un des chapitres les plus sombres de l'histoire du renseignement americain. Contrairement a la plupart des theories du complot, MK-Ultra n'est pas une speculation : il a ete **reconnu officiellement** par la CIA, documente par le Congres americain et a fait l'objet de poursuites judiciaires.
-
-### Origines et Contexte
-
-Au debut de la Guerre froide, la CIA etait obsedee par la possibilite que l'URSS et la Chine aient developpe des techniques de **lavage de cerveau** (*brainwashing*). Les *"confessions"* de prisonniers americains pendant la **guerre de Coree**, ou des soldats reconnaissaient publiquement des crimes de guerre, ont convaincu les services de renseignement qu'un programme de recherche sur le controle mental etait indispensable.
-
-Le **13 avril 1953**, le directeur de la CIA **Allen Dulles** autorise officiellement le projet MK-Ultra. Le programme est place sous la direction du **Dr. Sidney Gottlieb**, chimiste de la Division des Services Techniques (TSD), un personnage que ses collegues surnommaient *"le Sorcier Noir"*.
-
-### Les Experiences au LSD
-
-Le volet le plus connu de MK-Ultra concerne les experiences avec le **LSD** (acide lysergique diethylamide), alors une substance nouvelle et mal connue. La CIA en a achete la quasi-totalite de la production mondiale aupres de **Sandoz Laboratories** en Suisse.
-
-Les experiences allaient du **consentement eclaire** (rare) a l'**administration a l'insu des sujets** (frequent) :
-
-- Des **employes de la CIA** se dosaient mutuellement au LSD sans prevenir, dans le cadre de reunions de travail
-- Des **soldats** de l'armee americaine a **Fort Detrick** recevaient du LSD sans leur consentement
-- Des **prisonniers**, des **patients psychiatriques** et des **prostituees** etaient utilises comme cobayes
-- Des **etudiants d'universite** participaient a des experiences presentees comme de la recherche psychologique benigne (c'est le cas de **Ted Kaczynski**, le futur *Unabomber*, soumis a des experiences psychologiques traumatisantes a Harvard entre 1959 et 1962 dans le cadre d'un sous-projet MK-Ultra dirige par le **Dr. Henry Murray**)
-
-### Operation Midnight Climax
-
-L'un des sous-projets les plus scandaleux etait l'**Operation Midnight Climax**. La CIA a ouvert des **maisons closes** a San Francisco et New York, ou des prostituees recrutees par l'agence administraient du **LSD a des clients a leur insu**. Des agents de la CIA observaient les effets depuis derriere des **miroirs sans tain**, filmant les scenes. L'objectif etait d'etudier les effets du LSD dans un contexte d'**exploitation sexuelle** et d'evaluer son potentiel comme serum de verite.
-
-Le superviseur de l'operation, **George Hunter White**, agent du Bureau Federal des Narcotiques, ecrira plus tard : *"Ou d'autre un petit garcon americain aurait-il pu faire des choses pareilles avec l'approbation du gouvernement ?"*
-
-### La Mort de Frank Olson
-
-Le **28 novembre 1953**, **Frank Olson**, biochimiste militaire travaillant a **Fort Detrick** sur des armes biologiques, fait une chute mortelle du 13e etage de l'hotel Statler a New York. La CIA affirma qu'il s'etait suicide apres avoir recu du LSD a son insu lors d'une retraite de travail 9 jours plus tot.
-
-En 1994, l'exhumation de son corps revela une **blessure cranienne** anterieure a la chute, incompatible avec un suicide. Son fils **Eric Olson** a consacre sa vie a prouver que son pere avait ete **assassine** parce qu'il souhaitait reveler les programmes d'armes biologiques de la CIA. En 2012, un juge federal a rejete la plainte de la famille, mais les circonstances restent profondement suspectes.
-
-### Le Sous-Projet 68 : Dr. Donald Ewen Cameron
-
-A l'**universite McGill** de Montreal (Canada), le **Dr. Donald Ewen Cameron** mena certaines des experiences les plus destructrices de MK-Ultra dans le cadre du **sous-projet 68**. Finance par la CIA via une fondation-ecran, Cameron soumettait ses patients a :
-
-- Des sessions de **sommeil force** (jusqu'a 30 jours consecutifs sous sedatifs)
-- Des **electrochocs massifs** (30 a 40 fois l'intensite therapeutique normale)
-- L'ecoute en boucle de **messages enregistres** pendant des semaines (procede qu'il appelait *"psychic driving"*)
-- L'administration de **cocktails de drogues** (LSD, PCP, barbituriques)
-
-L'objectif etait de *"deprogrammer"* la personnalite du patient pour la *"reprogrammer"*. Les resultats furent catastrophiques : des patients autrefois fonctionnels ont ete reduits a un etat de **dependance infantile**, incapables de se souvenir de leur propre nom. Le gouvernement canadien a fini par indemniser les victimes dans les annees 1990.
-
-### Le Concept du Candidat Mandchou
-
-MK-Ultra visait ultimement a creer un **"Candidat Mandchou"** (du roman de Richard Condon, 1959) : un **assassin programme**, capable de tuer sur commande et d'oublier ensuite ses actes. Bien que la CIA n'ait jamais confirme avoir reussi, la possibilite que certains sous-projets aient atteint un niveau de sophistication inconnu reste une question ouverte.
-
-### La Destruction des Preuves
-
-En **1973**, le directeur de la CIA **Richard Helms**, sur le point de quitter ses fonctions, ordonna la **destruction de tous les dossiers MK-Ultra**. La majorite des documents furent detruits. Ce n'est qu'en **1977** qu'un archiviste decouvrit **20 000 documents financiers** ayant echappe a la destruction, dans un batiment different de celui des archives operationnelles.
-
-Ces documents, bien que principalement financiers, ont permis de reconstituer partiellement l'ampleur du programme : **149 sous-projets**, impliquant **80 institutions**, dont des universites, des hopitaux, des prisons et des entreprises pharmaceutiques.
-
-### Conclusion
-
-MK-Ultra est la preuve documentee que les gouvernements sont **capables de mener des programmes secrets** d'une cruaute extreme contre leurs propres citoyens. La destruction deliberee des archives en 1973 souleve une question troublante : si ce qui a survecu est deja aussi horrifiant, **qu'y avait-il dans les documents detruits ?** Cette affaire constitue un rappel permanent que la frontiere entre *theorie du complot* et *realite documentee* peut etre beaucoup plus mince qu'on ne le pense."""
-
-    slug_8 = slugify("MK-Ultra - Le Programme de Controle Mental de la CIA")
-    article_8 = {
-        "title": "MK-Ultra - Le Programme de Controle Mental de la CIA",
-        "title_lower": "mk-ultra - le programme de controle mental de la cia",
-        "slug": slug_8,
-        "summary": truncate_text("Le programme MK-Ultra de la CIA (1953-1973) : experiences au LSD, Operation Midnight Climax, mort de Frank Olson, Dr. Cameron a McGill et destruction des archives.", 200),
-        "content": content_8,
-        "content_html": render_markdown(content_8),
-        "category": "technologie",
-        "tags": ["mk-ultra", "cia", "controle-mental", "lsd", "manchurian-candidate"],
-        "sources": [
-            {"title": "CIA FOIA - MK-Ultra documents", "url": "https://www.cia.gov/readingroom/collection/mkultra", "type": "officiel"},
-            {"title": "Commission Church 1975", "url": "https://www.senate.gov/about/powers-procedures/investigations/church-committee.htm", "type": "officiel"},
-        ],
-        "related_articles": [],
-        "author_uid": current_user.uid,
-        "author_username": author_username,
-        "generated_by_ai": False,
-        "ai_model": "",
-        "status": "published",
-        "credibility": "documente",
-        "classification": "top-secret",
-        "views": random.randint(50, 5000),
-        "upvotes": random.randint(5, 500),
-        "downvotes": random.randint(0, 50),
-        "comment_count": 0,
-        "created_at": timestamps[7],
-        "updated_at": timestamps[7],
-        "featured": False,
-        "image_url": "https://upload.wikimedia.org/wikipedia/commons/9/99/Mkultra-lsd-doc.jpg",
-    }
-
-    # =========================================================================
-    # ARTICLE 9 : Le Groupe Bilderberg - Le Gouvernement de l'Ombre
-    # =========================================================================
-    content_9 = """### Introduction
-
-Chaque annee, environ **130 des personnalites les plus influentes** de la planete se reunissent a huis clos pendant trois jours dans un hotel de luxe haute securite. Pas de cameras, pas de comptes rendus officiels, pas de communiques de presse detailles. Ce rassemblement, connu sous le nom de **Conference Bilderberg**, est pour beaucoup la preuve ultime de l'existence d'un **gouvernement mondial de l'ombre**.
-
-### La Fondation en 1954
-
-La premiere conference Bilderberg s'est tenue du **29 au 31 mai 1954** a l'**Hotel de Bilderberg** a Oosterbeek, aux Pays-Bas, d'ou le nom du groupe. Les fondateurs etaient :
-
-- **Le prince Bernhard des Pays-Bas** (ancien membre du parti nazi avant la guerre, detail rarement mentionne dans les publications officielles)
-- **David Rockefeller** : banquier americain, PDG de Chase Manhattan Bank
-- **Joseph Retinger** : diplomate polonais et architecte de l'integration europeenne
-
-L'objectif declare etait de **favoriser le dialogue** entre l'Europe et l'Amerique du Nord a une epoque ou les relations transatlantiques etaient tendues. La Guerre froide battait son plein, et les elites occidentales estimaient necessaire de **coordonner leurs positions** face a la menace sovietique.
-
-### Le Fonctionnement
-
-Les reunions Bilderberg suivent un protocole strict :
-
-- **Environ 130 participants** : chefs d'Etat, ministres, PDG, banquiers, editorialistes, universitaires et militaires
-- **La Chatham House Rule** : les participants peuvent utiliser les informations discutees, mais ne peuvent **jamais attribuer** une declaration a un participant specifique
-- **Aucun media** n'est admis, aucun enregistrement n'est autorise
-- Un **comite directeur** d'environ 35 membres organise les reunions et selectionne les participants
-- La securite est assuree par les **forces de l'ordre du pays hote**, financees par le contribuable
-
-### Les Participants Notables
-
-La liste des participants au fil des decennies comprend un veritable *Who's Who* du pouvoir mondial :
-
-**Politique :**
-- **Henry Kissinger** : present pratiquement chaque annee depuis les annees 1950
-- **Angela Merkel** : invitee en 2005, quelques mois avant de devenir chanceliere
-- **Emmanuel Macron** : invite en 2014, trois ans avant son election
-- **Tony Blair** : invite en 1993, quatre ans avant de devenir Premier ministre
-- **Bill Clinton** : invite en 1991, un an avant son election
-
-**Finance et entreprises :**
-- **Jeff Bezos** (Amazon)
-- **Eric Schmidt** (Google/Alphabet)
-- **Peter Thiel** (PayPal, Palantir)
-- **Christine Lagarde** (FMI, puis BCE)
-
-**Medias :**
-- Editeurs et directeurs du *Washington Post*, du *Financial Times*, de *The Economist*, du *New York Times*
-
-### La Selection des Leaders
-
-Le point le plus troublant pour les theoriciens du complot est la **correlation entre une invitation a Bilderberg et une accession au pouvoir** peu apres :
-
-- **Bill Clinton** invite en 1991, elu president en 1992
-- **Tony Blair** invite en 1993, Premier ministre en 1997
-- **Angela Merkel** invitee en 2005, chanceliere la meme annee
-- **Emmanuel Macron** invite en 2014, president en 2017
-- **Mark Rutte** invite regulierement, devenu secretaire general de l'OTAN en 2024
-
-Les defenseurs du groupe expliquent que les personnes invitees sont deja des **personnalites montantes** identifiees comme de futurs leaders, et que la correlation n'implique pas la causalite. Les sceptiques retorquent que l'inverse est tout aussi plausible : ces personnes accedent au pouvoir **parce qu'elles** ont ete validees par Bilderberg.
-
-### Liens avec le CFR et la Commission Trilaterale
-
-Le Groupe Bilderberg n'existe pas dans un vide. Il fait partie d'un **ecosysteme de cercles d'influence** :
-
-- Le **Council on Foreign Relations** (CFR), fonde en 1921 a New York, dont les membres ont occupe pratiquement tous les postes cles de la politique etrangere americaine
-- La **Commission Trilaterale**, fondee en 1973 par **David Rockefeller** et **Zbigniew Brzezinski**, reunissant des elites d'Amerique du Nord, d'Europe et du Japon (puis de la zone Asie-Pacifique)
-- Le **Forum Economique Mondial de Davos**, fonde en 1971 par **Klaus Schwab**
-
-De nombreux participants sont membres de **plusieurs de ces organisations simultanement**, creant un reseau d'influence dense et interconnecte.
-
-### Theories et Contre-Arguments
-
-**Les accusations :**
-- Bilderberg serait un **gouvernement mondial non elu** ou les grandes decisions sont prises avant d'etre *"vendues"* au public
-- Les elections democratiques ne seraient qu'une **facade**, les veritables choix ayant ete faits dans ces reunions privees
-- L'Union Europeenne, l'euro, les guerres au Moyen-Orient et les crises economiques auraient ete **planifies** a Bilderberg
-
-**Les contre-arguments :**
-- Le groupe publie desormais la **liste des participants** et les sujets de discussion generaux
-- Des personnes aux opinions tres divergentes sont invitees, suggerant un **veritable debat** plutot qu'un consensus preexistant
-- D'anciens participants ont decrit les reunions comme **ennuyeuses** et peu productives
-- L'idee que 130 personnalites puissent garder un secret aussi longtemps est **statistiquement improbable**
-
-### Conclusion
-
-Le Groupe Bilderberg occupe une position unique dans l'univers des theories du complot : il est **suffisamment reel et secret** pour alimenter les soupcons, tout en etant **suffisamment ouvert** pour desamorcer les accusations les plus extremes. La question fondamentale qu'il pose reste pertinente : est-il normal que les decisions affectant des milliards de personnes soient discutees a huis clos par un groupe non elu, meme si elles ne sont pas formellement *"prises"* dans ce cadre ?"""
-
-    slug_9 = slugify("Le Groupe Bilderberg - Le Gouvernement de l'Ombre")
-    article_9 = {
-        "title": "Le Groupe Bilderberg - Le Gouvernement de l'Ombre",
-        "title_lower": "le groupe bilderberg - le gouvernement de l'ombre",
-        "slug": slug_9,
-        "summary": truncate_text("Le Groupe Bilderberg : 130 personnalites reunies a huis clos depuis 1954. Participants celebres, pre-selection des leaders et liens avec le CFR et Davos.", 200),
-        "content": content_9,
-        "content_html": render_markdown(content_9),
-        "category": "politique",
-        "tags": ["bilderberg", "elite", "gouvernement-mondial", "davos", "politique"],
-        "sources": [
-            {"title": "Bilderberg Meetings - Site officiel", "url": "https://www.bilderbergmeetings.org/", "type": "officiel"},
-            {"title": "Liste des participants 2023", "url": "https://www.bilderbergmeetings.org/meetings/meeting-2023/participants-2023", "type": "officiel"},
-        ],
-        "related_articles": [],
-        "author_uid": current_user.uid,
-        "author_username": author_username,
-        "generated_by_ai": False,
-        "ai_model": "",
-        "status": "published",
-        "credibility": "documente",
-        "classification": "confidentiel",
-        "views": random.randint(50, 5000),
-        "upvotes": random.randint(5, 500),
-        "downvotes": random.randint(0, 50),
-        "comment_count": 0,
-        "created_at": timestamps[8],
-        "updated_at": timestamps[8],
-        "featured": False,
-        "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/46/Hotel_De_Bilderberg.jpg/640px-Hotel_De_Bilderberg.jpg",
-    }
-
-    # =========================================================================
-    # ARTICLE 10 : HAARP - Manipulation Climatique et Armes Electromagnetiques
-    # =========================================================================
-    content_10 = """### Introduction
-
-Au coeur de l'Alaska, dans la ville isolee de **Gakona**, se dresse l'une des installations scientifiques les plus controversees au monde : **HAARP** (*High-frequency Active Auroral Research Program*). Ce champ d'antennes, officiellement consacre a l'etude de l'ionosphere, est accuse par de nombreux theoriciens du complot d'etre une **arme climatique** capable de provoquer des seismes, des ouragans et des secheresses a volonte.
-
-### L'Installation
-
-HAARP est compose de **180 antennes HF** (haute frequence) deployees sur un terrain de **14 hectares**, formant un *"IRI"* (*Ionospheric Research Instrument*) capable d'emettre **3,6 megawatts** de puissance dans l'ionosphere. Ce faisceau d'ondes electromagnetiques peut temporairement **exciter une portion de l'ionosphere**, creant un *"miroir artificiel"* permettant d'etudier les proprietes de cette couche atmospherique situee entre **85 et 600 km** d'altitude.
-
-Le programme a ete initie en **1993**, conjointement par l'**US Air Force**, l'**US Navy** et l'**universite de l'Alaska Fairbanks** (UAF). En 2014, la gestion a ete transferee entierement a l'UAF, la rendant techniquement civile.
-
-### Le Brevet Eastlund
-
-La controverse autour de HAARP trouve sa source dans un brevet depose en **1987** par le physicien **Bernard Eastlund** (brevet US4686605A), intitule *"Method and Apparatus for Altering a Region in the Earth's Atmosphere, Ionosphere, and/or Magnetosphere"*. Ce brevet decrit un systeme capable de :
-
-- **Modifier les conditions meteorologiques** en alterant les patterns de vent et de precipitation
-- **Perturber les communications** ennemies sur de vastes zones
-- **Detruire les missiles** en vol grace a un bouclier electromagnetique
-- **Detecter** les sous-marins et les installations souterraines
-
-Eastlund a lui-meme affirme que HAARP etait **base sur ses travaux**, bien que les responsables du programme l'aient nie. Le brevet, librement consultable, est cite comme la preuve que la technologie de manipulation climatique existe au moins en **theorie brevetee**.
-
-### Les Theories de Nikola Tesla
-
-Les defenseurs de la theorie HAARP font souvent reference aux travaux de **Nikola Tesla** (1856-1943), qui avait envisage la **transmission d'energie sans fil** a travers l'ionosphere. Sa tour **Wardenclyffe** (1901-1917), bien que jamais achevee, etait concue pour exploiter les **resonances naturelles** de la Terre (resonances de Schumann) pour transmettre de l'energie a l'echelle planetaire.
-
-Selon cette theorie, HAARP serait la **realisation militaire** du reve de Tesla : un systeme capable d'injecter de l'energie dans le systeme climatique terrestre a distance, en utilisant l'ionosphere comme **relais et amplificateur**.
-
-### Les Accusations de Manipulation Climatique
-
-De nombreux evenements meteorologiques et geologiques ont ete attribues a HAARP :
-
-**Seismes :**
-- **Haiti, 12 janvier 2010** (magnitude 7.0) : le president venezuelien **Hugo Chavez** a publiquement accuse les Etats-Unis d'avoir provoque le seisme a l'aide de HAARP, declarant que les Americains testaient une *"arme tectonique"*
-- **Japon, 11 mars 2011** (magnitude 9.1) : des theoriciens ont pointe des *"lueurs"* inhabituelles dans le ciel avant le seisme comme preuve d'activite HAARP
-- **Turquie-Syrie, 6 fevrier 2023** (magnitude 7.8) : les memes accusations ont resurgi
-
-**Ouragans et phenomenes meteorologiques :**
-- **Ouragan Katrina** (2005) : accuse d'avoir ete dirige vers la Nouvelle-Orleans
-- **Secheresses en Afrique** : attribuees a la manipulation des courants-jets (jet streams)
-- **Inondations en Europe** : certains y voient la main de HAARP
-
-### Les Arguments Scientifiques
-
-Les sceptiques avancent plusieurs arguments :
-
-- La puissance de HAARP (**3,6 MW**) est **derisoire** comparee a l'energie d'un seul orage (equivalente a une **bombe nucleaire**) ou d'un seisme (des millions de fois plus puissant)
-- L'ionosphere est situee trop haut pour affecter directement la **troposphere** (couche ou se forment les phenomenes meteorologiques)
-- Les seismes se produisent a des profondeurs de **10 a 700 km** sous terre, bien au-dela de toute influence electromagnetique de surface
-- Les phenomenes meteorologiques sont des systemes **chaotiques** extremement complexes, impossibles a controler avec precision
-
-Les partisans repondent que la puissance declaree est peut-etre **sous-estimee**, que des technologies classifiees pourraient amplifier les effets, et que le but n'est pas de *creer* des phenomenes mais de **declencher** ou **amplifier** des processus naturels deja en gestation.
-
-### La Resolution du Parlement Europeen (1999)
-
-En **1999**, le Parlement europeen a adopte une resolution exprimant des **preoccupations** concernant HAARP. Le texte qualifiait le programme de *"preoccupation mondiale"* et demandait qu'il soit soumis a un examen independant. Le rapport estimait que *"HAARP constituait un sujet de preoccupation mondiale en raison de ses implications etendues pour l'environnement"* et appelait a un moratoire.
-
-Cette resolution, bien que non contraignante, est frequemment citee comme la preuve que meme les **institutions officielles** prennent au serieux la menace que pourrait representer HAARP.
-
-### Les Programmes Similaires dans le Monde
-
-HAARP n'est pas unique. D'autres nations disposent d'installations similaires :
-
-- **SURA** (Russie) : situe pres de Nijni Novgorod, operationnel depuis 1981, avec une puissance comparable
-- **EISCAT** (Europe du Nord) : un reseau radar ionospherique en Norvege, Suede et Finlande
-- La **Chine** a developpe ses propres installations d'etude ionospherique, dont les details restent largement classifies
-
-L'existence de ces programmes paralleles est vue par les theoriciens comme la preuve d'une **course aux armes climatiques** entre grandes puissances.
-
-### Conclusion
-
-HAARP reste un sujet ou le **secret militaire** alimente les theories les plus extravagantes. L'installation existe reellement, les brevets sont publics, et les capacites theoriques decrites dans la litterature scientifique sont troublantes. Mais le gouffre entre la *theorie* et la *capacite operationnelle* de manipuler le climat ou provoquer des seismes reste immense. Tant que les installations comme HAARP resteront partiellement **opaques au regard public**, elles continueront d'etre le symbole parfait de la frontiere entre science et conspiration."""
-
-    slug_10 = slugify("HAARP - Manipulation Climatique et Armes Electromagnetiques")
-    article_10 = {
-        "title": "HAARP - Manipulation Climatique et Armes Electromagnetiques",
-        "title_lower": "haarp - manipulation climatique et armes electromagnetiques",
-        "slug": slug_10,
-        "summary": truncate_text("HAARP en Alaska : 180 antennes HF, le brevet Eastlund, les theories de Tesla, les accusations de manipulation climatique et la resolution du Parlement europeen.", 200),
-        "content": content_10,
-        "content_html": render_markdown(content_10),
-        "category": "technologie",
-        "tags": ["haarp", "climat", "arme", "electromagnétique", "alaska"],
-        "sources": [
-            {"title": "HAARP - University of Alaska Fairbanks", "url": "https://haarp.gi.alaska.edu/", "type": "officiel"},
-            {"title": "Brevet Bernard Eastlund (1987)", "url": "https://patents.google.com/patent/US4686605A", "type": "document"},
-        ],
-        "related_articles": [],
-        "author_uid": current_user.uid,
-        "author_username": author_username,
-        "generated_by_ai": False,
-        "ai_model": "",
-        "status": "published",
-        "credibility": "speculatif",
-        "classification": "secret",
-        "views": random.randint(50, 5000),
-        "upvotes": random.randint(5, 500),
-        "downvotes": random.randint(0, 50),
-        "comment_count": 0,
-        "created_at": timestamps[9],
-        "updated_at": timestamps[9],
-        "featured": False,
-        "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/HAARP20l.jpg/640px-HAARP20l.jpg",
-    }
-
-    # =========================================================================
-    # Insertion dans Firestore
-    # =========================================================================
-    articles = [
-        article_1,
-        article_2,
-        article_3,
-        article_4,
-        article_5,
-        article_6,
-        article_7,
-        article_8,
-        article_9,
-        article_10,
-    ]
-
-    for art_data in articles:
-        fb.create_article(art_data)
-
-    flash(f"{len(articles)} dossiers ont ete deployes dans les archives!", "success")
+    articles = get_articles(current_user.username or current_user.display_name or "ARCANA")
+
+    created = 0
+    for art in articles:
+        content_md = art.pop("content")
+        content_html = render_markdown(content_md)
+        art["content"] = content_md
+        art["content_html"] = content_html
+        art["excerpt"] = truncate_text(content_md.replace("#", "").replace("*", "").strip(), 200)
+
+        # Ajouter les sources
+        for key, sources in SOURCES_MAP.items():
+            if key in art["slug"]:
+                art["sources"] = sources
+                break
+
+        fb.add_document("articles", art)
+        created += 1
+
+    flash(f"{created} dossiers ont ete deposes dans les archives.", "success")
     return redirect(url_for("wiki.home"))
 
 
-# =========================================================================
-#  Route de nettoyage des doublons + correction images
-# =========================================================================
+@seed_bp.route("/admin/reseed-wiki")
+@login_required
+def reseed_wiki():
+    """Supprime tous les articles et re-seed avec le nouveau contenu."""
+    fb = get_firebase()
 
-IMAGE_MAP = {
-    "terre-plate": "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=640&h=400&fit=crop",
-    "epstein": "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=640&h=400&fit=crop",
-    "emails": "https://images.unsplash.com/photo-1568667256549-094345857637?w=640&h=400&fit=crop",
-    "franc-maconnerie": "https://images.unsplash.com/photo-1572883454114-efb8df45c926?w=640&h=400&fit=crop",
-    "illuminati": "https://images.unsplash.com/photo-1518640467707-6811f4a6ab73?w=640&h=400&fit=crop",
-    "rothschild": "https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?w=640&h=400&fit=crop",
-    "occulte": "https://images.unsplash.com/photo-1509281373149-e957c6296406?w=640&h=400&fit=crop",
-    "mk-ultra": "https://images.unsplash.com/photo-1517373116369-9bdb8cdc9f62?w=640&h=400&fit=crop",
-    "bilderberg": "https://images.unsplash.com/photo-1577415124269-fc1140815e3d?w=640&h=400&fit=crop",
-    "haarp": "https://images.unsplash.com/photo-1527482937786-6a7c43f73124?w=640&h=400&fit=crop",
-}
+    # Supprimer tous les articles existants
+    all_articles = fb.query_collection("articles", "status", "EQUAL", "published",
+                                        order_by="", limit=100)
+    deleted = 0
+    for art in all_articles:
+        art_id = art.get("__id", "")
+        if art_id:
+            fb.delete_document("articles", art_id)
+            deleted += 1
+
+    # Also delete drafts
+    drafts = fb.query_collection("articles", "status", "EQUAL", "draft",
+                                  order_by="", limit=100)
+    for art in drafts:
+        art_id = art.get("__id", "")
+        if art_id:
+            fb.delete_document("articles", art_id)
+            deleted += 1
+
+    # Re-seed
+    articles = get_articles(current_user.username or current_user.display_name or "ARCANA")
+
+    created = 0
+    for art in articles:
+        content_md = art.pop("content")
+        content_html = render_markdown(content_md)
+        art["content"] = content_md
+        art["content_html"] = content_html
+        art["excerpt"] = truncate_text(content_md.replace("#", "").replace("*", "").strip(), 200)
+
+        for key, sources in SOURCES_MAP.items():
+            if key in art["slug"]:
+                art["sources"] = sources
+                break
+
+        fb.add_document("articles", art)
+        created += 1
+
+    return jsonify({
+        "deleted": deleted,
+        "created": created,
+        "status": "ok"
+    })
 
 
 @seed_bp.route("/admin/fix-wiki")
 @login_required
 def fix_wiki():
-    """Supprime les doublons et corrige les URLs d'images. Retourne JSON debug."""
+    """Supprime les doublons et corrige les URLs d'images."""
     import requests as req
-    from flask import jsonify
 
     fb = get_firebase()
 
-    # Methode directe REST API - lister TOUS les documents de la collection articles
-    project_id = fb.project_id if hasattr(fb, 'project_id') else None
-    headers = fb._get_headers()
-
-    # Essai 1 : query_collection sans order_by
     all_articles = fb.query_collection("articles", "status", "EQUAL", "published",
                                         order_by="", limit=100)
 
-    # Essai 2 : si vide, tenter une requete directe REST list
     if not all_articles:
         try:
             list_url = fb._fs_url("articles")
-            resp = req.get(list_url, headers=headers, params={"pageSize": 100}, timeout=15)
+            resp = req.get(list_url, headers=fb._get_headers(), params={"pageSize": 100}, timeout=15)
             if resp.status_code == 200:
                 data = resp.json()
                 docs = data.get("documents", [])
@@ -1094,49 +668,21 @@ def fix_wiki():
     if not all_articles:
         return jsonify({"error": "Aucun article trouve", "method": "both_failed"}), 404
 
-    # Deduplication par slug - garder le premier, supprimer les suivants
     seen_slugs = {}
     duplicates_removed = 0
-    deleted_ids = []
     for art in all_articles:
         slug = art.get("slug", "")
         art_id = art.get("__id", "")
         if not slug or not art_id:
             continue
         if slug in seen_slugs:
-            ok = fb.delete_document("articles", art_id)
-            if ok:
-                duplicates_removed += 1
-                deleted_ids.append(art_id)
+            fb.delete_document("articles", art_id)
+            duplicates_removed += 1
         else:
             seen_slugs[slug] = art_id
-
-    # Corriger les images
-    images_fixed = 0
-    fixed_details = []
-    for slug, art_id in seen_slugs.items():
-        new_img = None
-        for key, img_url in IMAGE_MAP.items():
-            if key in slug:
-                new_img = img_url
-                break
-        if not new_img:
-            if "email" in slug or "document" in slug:
-                new_img = IMAGE_MAP["emails"]
-            elif "epstein" in slug:
-                new_img = IMAGE_MAP["epstein"]
-
-        if new_img:
-            ok = fb.update_article(art_id, {"image_url": new_img})
-            if ok:
-                images_fixed += 1
-                fixed_details.append({"slug": slug, "image": new_img})
 
     return jsonify({
         "total_found": len(all_articles),
         "unique_slugs": list(seen_slugs.keys()),
         "duplicates_removed": duplicates_removed,
-        "deleted_ids": deleted_ids,
-        "images_fixed": images_fixed,
-        "fixed_details": fixed_details,
     })

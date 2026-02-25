@@ -68,9 +68,58 @@
     </div>
 
     <!-- Article content -->
-    <div class="article-content mb-8">
+    <div class="article-content mb-8" id="article-body">
         {{ article.content_html|safe }}
     </div>
+
+    <!-- Age verification modal (shown once if sensitive images exist) -->
+    <div id="age-modal" class="age-modal-backdrop" style="display:none;">
+        <div class="age-modal">
+            <div class="text-4xl mb-4">⚠️</div>
+            <h2 class="font-title text-gold-500 text-xl mb-3">Contenu sensible</h2>
+            <p class="text-gray-400 text-sm mb-2">Cet article contient des images et descriptions pouvant heurter la sensibilite de certaines personnes.</p>
+            <p class="text-gray-300 text-sm font-semibold mb-6">Confirmez que vous avez 18 ans ou plus pour continuer.</p>
+            <div class="flex gap-3 justify-center">
+                <button onclick="confirmAge()" class="bg-gold-500/20 hover:bg-gold-500/30 text-gold-500 px-6 py-2.5 rounded-lg border border-gold-500/30 font-title text-sm transition-all">
+                    J'ai 18 ans ou plus
+                </button>
+                <button onclick="declineAge()" class="bg-abyss-700 hover:bg-abyss-600 text-gray-400 px-6 py-2.5 rounded-lg border border-gray-700 text-sm transition-all">
+                    Quitter
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // Sensitive image handling
+    (function() {
+        const hasSensitive = document.querySelectorAll('.sensitive-image').length > 0;
+        const consent = localStorage.getItem('arcana_age_verified');
+
+        if (hasSensitive && !consent) {
+            document.getElementById('age-modal').style.display = 'flex';
+        } else if (consent) {
+            document.querySelectorAll('.sensitive-image').forEach(el => el.classList.add('revealed'));
+        }
+    })();
+
+    function confirmAge() {
+        localStorage.setItem('arcana_age_verified', 'true');
+        document.getElementById('age-modal').style.display = 'none';
+        document.querySelectorAll('.sensitive-image').forEach(el => el.classList.add('revealed'));
+    }
+
+    function declineAge() {
+        window.location.href = '{{ url_for("wiki.home") }}';
+    }
+
+    // Click to reveal individual sensitive images
+    document.querySelectorAll('.sensitive-image .sensitive-overlay').forEach(overlay => {
+        overlay.addEventListener('click', function() {
+            this.parentElement.classList.add('revealed');
+        });
+    });
+    </script>
 
     <!-- Sources -->
     {% if article.sources %}

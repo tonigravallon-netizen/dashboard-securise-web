@@ -60,11 +60,11 @@ ALLOWED_TAGS = [
 
 ALLOWED_ATTRS = {
     "a": ["href", "title", "target", "rel"],
-    "img": ["src", "alt", "title", "width", "height"],
+    "img": ["src", "alt", "title", "width", "height", "class"],
     "td": ["align"],
     "th": ["align"],
-    "span": ["class"],
-    "div": ["class"],
+    "span": ["class", "data-tooltip"],
+    "div": ["class", "data-warning"],
     "code": ["class"],
     "pre": ["class"],
 }

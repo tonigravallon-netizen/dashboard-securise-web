@@ -513,17 +513,30 @@ class FirebaseService:
 
     def get_articles_by_category(self, category, limit=20):
         """Recupere les articles d'une categorie donnee."""
-        return self.query_two_conditions("articles",
+        results = self.query_two_conditions("articles",
             "category", "EQUAL", category,
             "status", "EQUAL", "published",
             order_by="created_at", limit=limit)
+        if not results:
+            results = self.query_two_conditions("articles",
+                "category", "EQUAL", category,
+                "status", "EQUAL", "published",
+                order_by="", limit=limit)
+            results.sort(key=lambda x: x.get("created_at", ""), reverse=True)
+        return results
 
     def get_articles_by_tag(self, tag, limit=20):
         """Recupere les articles contenant un tag specifique."""
-        return self.query_two_conditions("articles",
+        results = self.query_two_conditions("articles",
             "tags", "ARRAY_CONTAINS", tag,
             "status", "EQUAL", "published",
             limit=limit)
+        if not results:
+            results = self.query_two_conditions("articles",
+                "tags", "ARRAY_CONTAINS", tag,
+                "status", "EQUAL", "published",
+                order_by="", limit=limit)
+        return results
 
     def get_articles_by_author(self, author_uid, limit=20):
         """Recupere les articles d'un auteur."""

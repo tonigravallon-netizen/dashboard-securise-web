@@ -158,6 +158,41 @@ def save_generated():
     return jsonify({"error": "Erreur lors de la sauvegarde"}), 500
 
 
+@api_wiki_bp.route("/add-source", methods=["POST"])
+@login_required
+def add_source():
+    """Ajoute une source suggeree par un utilisateur a un article."""
+    data = request.get_json()
+    article_id = data.get("article_id", "")
+    title = sanitize_text(data.get("title", ""), max_length=200)
+    url = sanitize_text(data.get("url", ""), max_length=500)
+    source_type = data.get("type", "alternatif")
+
+    if not article_id or not title or not url:
+        return jsonify({"error": "Titre et URL requis"}), 400
+
+    if source_type not in ("officiel", "alternatif", "fuite", "temoignage"):
+        source_type = "alternatif"
+
+    fb = get_firebase()
+    article = fb.get_article_by_id(article_id)
+    if not article:
+        return jsonify({"error": "Article introuvable"}), 404
+
+    sources = article.get("sources", []) or []
+    sources.append({
+        "title": title,
+        "url": url,
+        "type": source_type,
+        "added_by": current_user.username or current_user.display_name or "anonyme",
+    })
+
+    ok = fb.update_article(article_id, {"sources": sources})
+    if ok:
+        return jsonify({"ok": True, "sources_count": len(sources)})
+    return jsonify({"error": "Erreur"}), 500
+
+
 @api_wiki_bp.route("/search")
 def search_json():
     q = request.args.get("q", "").strip()

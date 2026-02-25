@@ -122,21 +122,56 @@
     </script>
 
     <!-- Sources -->
-    {% if article.sources %}
     <div class="mb-8">
         <h3 class="font-title text-gold-500 text-sm tracking-widest uppercase mb-3">📎 Sources</h3>
-        <div class="space-y-2">
+        <div id="sources-list" class="space-y-2">
+            {% if article.sources %}
             {% for source in article.sources %}
             <div class="bg-abyss-800 rounded-lg px-4 py-3 border-l-2 border-gold-500/30 text-sm">
                 <a href="{{ source.url }}" target="_blank" rel="noopener" class="text-gold-500 hover:text-gold-400 transition-colors">{{ source.title }}</a>
                 {% if source.type %}
                 <span class="text-xs text-gray-600 ml-2">[{{ source.type }}]</span>
                 {% endif %}
+                {% if source.added_by %}
+                <span class="text-xs text-gray-700 ml-1">— {{ source.added_by }}</span>
+                {% endif %}
             </div>
             {% endfor %}
+            {% else %}
+            <p class="text-xs text-gray-600">Aucune source pour le moment.</p>
+            {% endif %}
         </div>
+
+        <!-- Add source form -->
+        {% if current_user.is_authenticated %}
+        <div class="mt-4">
+            <button onclick="toggleSourceForm()" id="toggle-source-btn"
+                    class="text-xs text-gold-500/70 hover:text-gold-500 transition-colors flex items-center gap-1">
+                <span>+</span> Ajouter une source a cet article
+            </button>
+            <div id="source-form" class="hidden mt-3 bg-abyss-800 rounded-xl p-4 border border-gold-500/10">
+                <div class="space-y-3">
+                    <input type="text" id="source-title" placeholder="Titre de la source"
+                           class="w-full bg-abyss-900 border border-gold-500/15 rounded-lg px-3 py-2 text-sm text-parchment-100 placeholder-gray-600 focus:border-gold-500/30 focus:outline-none">
+                    <input type="url" id="source-url" placeholder="https://..."
+                           class="w-full bg-abyss-900 border border-gold-500/15 rounded-lg px-3 py-2 text-sm text-parchment-100 placeholder-gray-600 focus:border-gold-500/30 focus:outline-none">
+                    <select id="source-type"
+                            class="w-full bg-abyss-900 border border-gold-500/15 rounded-lg px-3 py-2 text-sm text-parchment-100 focus:border-gold-500/30 focus:outline-none">
+                        <option value="officiel">Source officielle</option>
+                        <option value="alternatif" selected>Source alternative</option>
+                        <option value="fuite">Document fuite</option>
+                        <option value="temoignage">Temoignage</option>
+                    </select>
+                    <button onclick="submitSource('{{ article.__id }}')"
+                            class="bg-gold-500/15 hover:bg-gold-500/25 text-gold-500 px-4 py-2 rounded-lg text-sm border border-gold-500/20 transition-all">
+                        Soumettre
+                    </button>
+                </div>
+                <p id="source-feedback" class="text-xs mt-2 hidden"></p>
+            </div>
+        </div>
+        {% endif %}
     </div>
-    {% endif %}
 
     <div class="ornament my-8">👁️</div>
 

@@ -148,6 +148,68 @@ function hideLiveResults() {
 }
 
 
+// ── Sources (ajout par utilisateur) ───────────────────────
+
+function toggleSourceForm() {
+    const form = document.getElementById('source-form');
+    form.classList.toggle('hidden');
+}
+
+async function submitSource(articleId) {
+    const title = document.getElementById('source-title').value.trim();
+    const url = document.getElementById('source-url').value.trim();
+    const type = document.getElementById('source-type').value;
+    const feedback = document.getElementById('source-feedback');
+
+    if (!title || !url) {
+        feedback.textContent = 'Titre et URL requis.';
+        feedback.className = 'text-xs mt-2 text-red-400';
+        feedback.classList.remove('hidden');
+        return;
+    }
+
+    try {
+        const resp = await fetch('/api/wiki/add-source', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ article_id: articleId, title, url, type }),
+        });
+        const data = await resp.json();
+
+        if (data.ok) {
+            // Add new source to the list
+            const list = document.getElementById('sources-list');
+            const noSource = list.querySelector('p');
+            if (noSource) noSource.remove();
+
+            const div = document.createElement('div');
+            div.className = 'bg-abyss-800 rounded-lg px-4 py-3 border-l-2 border-gold-500/30 text-sm';
+            div.innerHTML = `
+                <a href="${escapeHtml(url)}" target="_blank" rel="noopener" class="text-gold-500 hover:text-gold-400 transition-colors">${escapeHtml(title)}</a>
+                <span class="text-xs text-gray-600 ml-2">[${escapeHtml(type)}]</span>
+            `;
+            list.appendChild(div);
+
+            // Reset form
+            document.getElementById('source-title').value = '';
+            document.getElementById('source-url').value = '';
+            feedback.textContent = 'Source ajoutee avec succes !';
+            feedback.className = 'text-xs mt-2 text-matrix-500';
+            feedback.classList.remove('hidden');
+            setTimeout(() => feedback.classList.add('hidden'), 3000);
+        } else if (resp.status === 401) {
+            window.location.href = '/login';
+        } else {
+            feedback.textContent = data.error || 'Erreur';
+            feedback.className = 'text-xs mt-2 text-red-400';
+            feedback.classList.remove('hidden');
+        }
+    } catch (e) {
+        console.error('Source submit error:', e);
+    }
+}
+
+
 // ── Flash messages auto-dismiss ────────────────────────────
 
 function initFlashDismiss() {

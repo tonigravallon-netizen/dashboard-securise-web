@@ -58,7 +58,7 @@ def get_articles(author_username):
 
 Depuis l'ecole, on vous repete que la Terre est une sphere qui tourne a 1670 km/h. Mais **personne ne l'a jamais prouve**. Les photos de la NASA ? Toutes retouchees, avouees par leurs propres employes. Le programme {g("Apollo", "Programme spatial americain 1961-1972. De nombreuses preuves suggerent que les alunissages ont ete filmes en studio.")} ? Un studio a Hollywood.
 
-{article_img("https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=800&h=450&fit=crop", "La fameuse Blue Marble de la NASA - image composite, pas une photo reelle")}
+{article_img("https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/Azimuthal_equidistant_projection_SW.jpg/800px-Azimuthal_equidistant_projection_SW.jpg", "La fameuse Blue Marble de la NASA - image composite, pas une photo reelle")}
 
 ### Le Modele reel
 
@@ -68,7 +68,7 @@ La Terre est un **disque plat** avec le Pole Nord au centre. Le Soleil et la Lun
 
 En 1959, en pleine Guerre Froide, 12 nations ennemies signent un traite pour **interdire toute exploration libre** de l'Antarctique. Pourquoi ? Parce qu'au-dela du mur se trouvent potentiellement d'**autres terres**, d'autres civilisations. L'amiral {g("Richard Byrd", "Amiral americain qui a mene des expeditions en Antarctique. Son journal parle de terres au-dela du pole, d'une civilisation avancee et de vegetation luxuriante.")} a lui-meme declare dans son journal avoir decouvert des terres verdoyantes au-dela du pole.
 
-{sensitive_img("https://images.unsplash.com/photo-1516912481808-3406841bd33c?w=800&h=450&fit=crop", "Le mur de glace antarctique - zone interdite au public depuis 1959")}
+{sensitive_img("https://upload.wikimedia.org/wikipedia/commons/thumb/d/d9/Richard_Evelyn_Byrd.jpg/800px-Richard_Evelyn_Byrd.jpg", "Le mur de glace antarctique - zone interdite au public depuis 1959")}
 
 ### Operation Fishbowl : tester le dome
 
@@ -85,7 +85,7 @@ Le controle. Si les gens savaient que le monde est clos, que nous sommes dans un
         "classification": "confidentiel",
         "credibility": "speculatif",
         "featured": True,
-        "image_url": "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=640&h=400&fit=crop",
+        "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/13/Orlando-Ferguson-flat-earth-map_edit.jpg/640px-Orlando-Ferguson-flat-earth-map_edit.jpg",
         "views": random.randint(3000, 8000),
         "upvotes": random.randint(100, 500),
         "downvotes": random.randint(10, 50),
@@ -99,7 +99,7 @@ Le controle. Si les gens savaient que le monde est clos, que nous sommes dans un
 
 {g("Jeffrey Epstein", "Financier americain (1953-2019). Condamne pour abus sur mineures. Retrouve mort en cellule dans des circonstances suspectes. Son reseau implique presidents, princes, et milliardaires.")} n'etait pas un simple pedophile milliardaire. Il etait le **maitre operateur** d'un reseau de chantage sexuel impliquant les personnalites les plus puissantes de la planete. Presidents, princes, PDGs, scientifiques - tous lies par un secret indicible.
 
-{sensitive_img("https://images.unsplash.com/photo-1559128010-7c1ad6e1b6a5?w=800&h=450&fit=crop", "Little Saint James, surnommee Pedophile Island - l'ile privee d'Epstein dans les iles Vierges americaines")}
+{sensitive_img("https://upload.wikimedia.org/wikipedia/commons/thumb/6/63/Little_St_James_Island_%289165947585%29.jpg/800px-Little_St_James_Island_%289165947585%29.jpg", "Little Saint James, surnommee Pedophile Island - l'ile privee d'Epstein dans les iles Vierges americaines")}
 
 ### L'ile de l'horreur : Little Saint James
 
@@ -109,7 +109,7 @@ Son ile privee dans les Iles Vierges, surnommee **"Pedophile Island"**, contenai
 
 Son Boeing 727 prive, le {g("Lolita Express", "Surnom du Boeing 727 prive d'Epstein. Les logs de vol revelent des dizaines de trajets avec des personnalites publiques vers son ile privee.")} , a transporte des dizaines de personnalites vers l'ile. Les **logs de vol declassifies** montrent des noms qui feraient trembler n'importe quel gouvernement. Bill Clinton : **26 vols**. Le Prince Andrew : plusieurs visites documentees avec photos.
 
-{article_img("https://images.unsplash.com/photo-1540962351504-03099e0a754b?w=800&h=450&fit=crop", "Un jet prive similaire au Lolita Express d'Epstein - Boeing 727 modifie")}
+{article_img("https://upload.wikimedia.org/wikipedia/commons/thumb/4/46/MCC_New_York_jeh.JPG/800px-MCC_New_York_jeh.JPG", "Un jet prive similaire au Lolita Express d'Epstein - Boeing 727 modifie")}
 
 ### Le faux suicide
 
@@ -126,7 +126,7 @@ Le 10 aout 2019, Epstein est retrouve mort dans sa cellule au {g("Metropolitan C
         "classification": "top-secret",
         "credibility": "documente",
         "featured": True,
-        "image_url": "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=640&h=400&fit=crop",
+        "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/Little_St_James_Island_%289123420726%29.jpg/640px-Little_St_James_Island_%289123420726%29.jpg",
         "views": random.randint(5000, 12000),
         "upvotes": random.randint(300, 800),
         "downvotes": random.randint(5, 30),
@@ -140,7 +140,7 @@ Le 10 aout 2019, Epstein est retrouve mort dans sa cellule au {g("Metropolitan C
 
 En janvier 2024, des milliers de pages de documents judiciaires ont ete rendus publics suite a l'affaire {g("Giuffre v. Maxwell", "Proces civil de Virginia Giuffre contre Ghislaine Maxwell. Les depositions et documents associes ont revele des noms et des details du reseau Epstein.")} . Ce qu'on y trouve glace le sang.
 
-{article_img("https://images.unsplash.com/photo-1568667256549-094345857637?w=800&h=450&fit=crop", "Des milliers de pages de documents judiciaires declassifies")}
+{article_img("https://upload.wikimedia.org/wikipedia/commons/thumb/9/9c/Jeffrey_Epstein%2C_27_-_HQ_Scan.jpg/800px-Jeffrey_Epstein%2C_27_-_HQ_Scan.jpg", "Des milliers de pages de documents judiciaires declassifies")}
 
 ### Les noms reveles
 
@@ -154,7 +154,7 @@ Les depositions mentionnent directement :
 
 Le {g("Black Book", "Carnet d'adresses d'Epstein contenant plus de 1500 noms et numeros. Obtenu par un ancien employe. Contient les coordonnees de chefs d'Etat, milliardaires et celebrites.")} d'Epstein contenait plus de **1500 contacts** : numeros prives de presidents, premiers ministres, directeurs de services secrets. Pas un simple carnet d'adresses - un **registre de pouvoir**.
 
-{sensitive_img("https://images.unsplash.com/photo-1450101499163-c8848e66ad76?w=800&h=450&fit=crop", "Reproduction symbolique du reseau de contacts d'Epstein - un des plus puissants jamais documentes")}
+{sensitive_img("https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/Maxwell_Epstein_Clinton_1993_1.jpg/800px-Maxwell_Epstein_Clinton_1993_1.jpg", "Reproduction symbolique du reseau de contacts d'Epstein - un des plus puissants jamais documentes")}
 
 ### Les emails : instructions de destruction
 
@@ -175,7 +175,7 @@ Plusieurs temoins et lanceurs d'alerte evoquent des **rituels** sur l'ile impliq
         "classification": "secret",
         "credibility": "documente",
         "featured": False,
-        "image_url": "https://images.unsplash.com/photo-1568667256549-094345857637?w=640&h=400&fit=crop",
+        "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/29/Epstein_Bail.png/640px-Epstein_Bail.png",
         "views": random.randint(4000, 9000),
         "upvotes": random.randint(200, 600),
         "downvotes": random.randint(5, 25),
@@ -189,7 +189,7 @@ Plusieurs temoins et lanceurs d'alerte evoquent des **rituels** sur l'ile impliq
 
 Derriere chaque revolution, chaque guerre, chaque changement de regime se cache la main invisible de la {g("Franc-Maconnerie", "Ordre initiatique et fraternel fonde officiellement en 1717 a Londres. Organise en loges, utilise des rituels et symboles lies a l'architecture. Compte des millions de membres dans le monde.")}. De la Revolution francaise a la creation des Etats-Unis, leurs symboles sont partout - si vous savez ou regarder.
 
-{article_img("https://images.unsplash.com/photo-1519681393784-d120267933ba?w=800&h=450&fit=crop", "Symboles maconniques graves dans la pierre - l'equerre et le compas, emblemes universels de l'Ordre")}
+{article_img("https://upload.wikimedia.org/wikipedia/commons/thumb/4/4c/Room_at_Masonic_Hall_Bury_St_Edmunds_Suffolk_England.jpg/800px-Room_at_Masonic_Hall_Bury_St_Edmunds_Suffolk_England.jpg", "Symboles maconniques graves dans la pierre - l'equerre et le compas, emblemes universels de l'Ordre")}
 
 ### Les symboles qui vous entourent
 
@@ -199,7 +199,7 @@ Regardez un billet d'un dollar. La {g("pyramide inachevee", "Symbole present sur
 
 La plupart des Macons ne depassent jamais le 3e degre. Mais les **33 degres** du {g("Rite Ecossais", "Systeme de hauts grades maconniques comprenant 33 degres. Les niveaux superieurs sont reserves a une elite selectionnee.")} revelent des verites de plus en plus profondes. Au sommet, les inities connaissent le vrai nom du {g("Grand Architecte", "Figure supreme de la cosmologie maconnique. Au-dela du 30e degre, certains temoins affirment que le Grand Architecte est identifie comme Lucifer - porteur de lumiere.")} - et ce n'est pas celui que vous croyez.
 
-{sensitive_img("https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&h=450&fit=crop", "Interieur d'un temple maconnique - les deux colonnes Boaz et Jakin, le damier noir et blanc")}
+{sensitive_img("https://upload.wikimedia.org/wikipedia/commons/thumb/c/ce/Freemasons%27_Hall%2C_London.JPG/800px-Freemasons%27_Hall%2C_London.JPG", "Interieur d'un temple maconnique - les deux colonnes Boaz et Jakin, le damier noir et blanc")}
 
 ### Le serment de sang
 
@@ -216,7 +216,7 @@ Presidents, juges de la Cour Supreme, generaux, PDGs - la proportion de Francs-M
         "classification": "secret",
         "credibility": "speculatif",
         "featured": True,
-        "image_url": "https://images.unsplash.com/photo-1519681393784-d120267933ba?w=640&h=400&fit=crop",
+        "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/70/Freimaurer_Initiation.jpg/640px-Freimaurer_Initiation.jpg",
         "views": random.randint(3000, 7000),
         "upvotes": random.randint(200, 500),
         "downvotes": random.randint(10, 40),
@@ -230,7 +230,7 @@ Presidents, juges de la Cour Supreme, generaux, PDGs - la proportion de Francs-M
 
 Le 1er mai 1776, Adam Weishaupt fonde l'{g("Illuminatenorden", "Ordre des Illumines de Baviere, fonde le 1er mai 1776 par Adam Weishaupt, professeur de droit canonique a Ingolstadt. Officiellement dissous en 1785, mais des preuves suggerent sa survie clandestine.")} a Ingolstadt, en Baviere. Officiellement dissous en 1785 par les autorites bavaroises, l'Ordre aurait en realite **infiltre la Franc-Maconnerie** et continue d'operer a travers elle.
 
-{article_img("https://images.unsplash.com/photo-1518640467707-6811f4a6ab73?w=800&h=450&fit=crop", "L'Oeil qui voit tout - symbole des Illuminati present partout dans la culture populaire et l'architecture officielle")}
+{article_img("https://upload.wikimedia.org/wikipedia/commons/thumb/5/58/Adam_Weishaupt01.jpg/800px-Adam_Weishaupt01.jpg", "L'Oeil qui voit tout - symbole des Illuminati present partout dans la culture populaire et l'architecture officielle")}
 
 ### Le plan en trois phases
 
@@ -245,7 +245,7 @@ Deux siecles plus tard, regardez ou nous en sommes.
 
 Ils ne se cachent plus - ils se **montrent**. Le signe du {g("triangle/pyramide", "Geste des mains formant un triangle, utilise par Jay-Z, Beyonce, Rihanna et de nombreuses celebrites. Signe de reconnaissance des Illuminati selon les theoriciens.")} fait par les celebrites, l'oeil unique cache par les pop stars, les pyramides dans les clips video... Ce n'est pas de la mode. C'est un **rituel d'obeissance publique**.
 
-{sensitive_img("https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800&h=450&fit=crop", "L'industrie musicale est saturee de symbolisme illuminati - un oeil cache, pyramides, rituels sur scene")}
+{sensitive_img("https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Owl_Shrine.jpg/800px-Owl_Shrine.jpg", "L'industrie musicale est saturee de symbolisme illuminati - un oeil cache, pyramides, rituels sur scene")}
 
 ### Le {g("Bohemian Grove", "Camp prive dans une foret de sequoias en Californie. Chaque ete, les hommes les plus puissants du monde s'y reunissent pour des ceremonies incluant la Cremation of Care devant une statue de hibou de 12 metres.")}
 
@@ -262,7 +262,7 @@ Les Illuminati de 2024 ne portent plus de robes. Ils portent des **costumes** et
         "classification": "secret",
         "credibility": "speculatif",
         "featured": True,
-        "image_url": "https://images.unsplash.com/photo-1518640467707-6811f4a6ab73?w=640&h=400&fit=crop",
+        "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3d/Dollarnote_siegel_hq.jpg/640px-Dollarnote_siegel_hq.jpg",
         "views": random.randint(5000, 10000),
         "upvotes": random.randint(300, 700),
         "downvotes": random.randint(15, 45),
@@ -278,7 +278,7 @@ Les Illuminati de 2024 ne portent plus de robes. Ils portent des **costumes** et
 
 Cette citation resument tout. Les Rothschild n'ont pas besoin de gouverner - ils **controlent ceux qui gouvernent** en controlant leur argent.
 
-{article_img("https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?w=800&h=450&fit=crop", "La finance mondiale - un systeme concu par et pour les dynasties bancaires")}
+{article_img("https://upload.wikimedia.org/wikipedia/commons/thumb/8/8d/Marriner_S._Eccles_Federal_Reserve_Board_Building.jpg/800px-Marriner_S._Eccles_Federal_Reserve_Board_Building.jpg", "La finance mondiale - un systeme concu par et pour les dynasties bancaires")}
 
 ### Le coup de Waterloo
 
@@ -288,7 +288,7 @@ En 1815, {g("Nathan Rothschild", "Fils de Mayer. A Londres, il aurait manipule l
 
 Les Rothschild sont derriere la creation de la plupart des {g("banques centrales", "Institutions privees controlant la creation monetaire d'un pays. La Federal Reserve (1913) n'est pas publique - elle appartient a des banquiers prives.")} du monde, y compris la {g("Federal Reserve", "Banque centrale des Etats-Unis, creee en 1913 lors d'une reunion secrete sur Jekyll Island. Malgre son nom, ce n'est pas une institution gouvernementale.")} americaine, creee lors d'une reunion secrete sur {g("Jekyll Island", "Ile au large de la Georgie (USA). En 1910, des banquiers representant 1/4 de la richesse mondiale s'y reunissent en secret pour rediger le Federal Reserve Act.")} en 1910.
 
-{sensitive_img("https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800&h=450&fit=crop", "Manoir Rothschild - la dynastie possede des centaines de proprietes a travers l'Europe")}
+{sensitive_img("https://upload.wikimedia.org/wikipedia/commons/thumb/8/8d/Waddesdon_Manor_and_Gardens_-_geograph.org.uk_-_649037.jpg/800px-Waddesdon_Manor_and_Gardens_-_geograph.org.uk_-_649037.jpg", "Manoir Rothschild - la dynastie possede des centaines de proprietes a travers l'Europe")}
 
 ### La fortune cachee
 
@@ -305,7 +305,7 @@ Chaque grande guerre a enrichi la dynastie. Ils financent **les deux camps** - A
         "classification": "confidentiel",
         "credibility": "speculatif",
         "featured": False,
-        "image_url": "https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?w=640&h=400&fit=crop",
+        "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5f/Mayer_Amschel_Rothschild.jpg/640px-Mayer_Amschel_Rothschild.jpg",
         "views": random.randint(4000, 9000),
         "upvotes": random.randint(200, 500),
         "downvotes": random.randint(10, 40),
@@ -319,7 +319,7 @@ Chaque grande guerre a enrichi la dynastie. Ils financent **les deux camps** - A
 
 Ouvrez les yeux. Les logos des plus grandes entreprises mondiales cachent des symboles {g("luciferiens", "Relatif a Lucifer, l'ange dechu. Dans l'occultisme d'elite, Lucifer est venere comme le porteur de lumiere et de connaissance, oppose au dieu des religions monotheistes.")}. Le logo de {g("CERN", "Organisation europeenne pour la recherche nucleaire. Son logo contient un triple 6 dissimule. Une statue de Shiva (dieu de la destruction) se trouve devant le batiment.")} contient un 666 dissimule. La statue de {g("Shiva", "Divinite hindoue de la destruction. Une statue de Shiva Nataraja de 2 metres se trouve devant le siege du CERN a Geneve, offerte par l'Inde en 2004.")} trone devant leurs locaux. Coincidence ?
 
-{sensitive_img("https://images.unsplash.com/photo-1509281373149-e957c6296406?w=800&h=450&fit=crop", "Symbolisme occulte - pentagrammes, oeil omniscient, et rituels sont au coeur du pouvoir mondial")}
+{sensitive_img("https://upload.wikimedia.org/wikipedia/commons/thumb/1/16/Minerval_insignia.png/800px-Minerval_insignia.png", "Symbolisme occulte - pentagrammes, oeil omniscient, et rituels sont au coeur du pouvoir mondial")}
 
 ### Le {g("Spirit Cooking", "Rituels d'art performance de Marina Abramovic impliquant du sang, du sperme et du lait maternel. Des emails fuites de John Podesta (WikiLeaks) montrent des invitations a ces ceremonies.")}
 
@@ -329,7 +329,7 @@ En 2016, les emails {g("Podesta", "John Podesta, directeur de campagne d'Hillary
 
 Les memes emails Podesta contiennent des references repetees a la "pizza", des "hot dogs", un "mouchoir avec une carte" - un langage qui, selon les enqueteurs citoyens, correspond a un **code pedocriminel** connu du FBI. L'enquete a ete immediatement etouffee par les medias mainstream.
 
-{article_img("https://images.unsplash.com/photo-1534972195531-d756b9bfa9f2?w=800&h=450&fit=crop", "L'oeil qui voit tout - present dans l'architecture officielle de Washington D.C.")}
+{article_img("https://upload.wikimedia.org/wikipedia/commons/thumb/3/3d/Dollarnote_siegel_hq.jpg/800px-Dollarnote_siegel_hq.jpg", "L'oeil qui voit tout - present dans l'architecture officielle de Washington D.C.")}
 
 ### Les ceremonies du {g("Skull and Bones", "Societe secrete de l'universite Yale, fondee en 1832. George H.W. Bush, George W. Bush, John Kerry, et de nombreux directeurs de la CIA en sont membres. Leur siege, 'the Tomb', contient des reliques humaines.")}
 
@@ -346,7 +346,7 @@ Ces symboles ne sont pas la par esthétique. C'est un **systeme de communication
         "classification": "top-secret",
         "credibility": "speculatif",
         "featured": True,
-        "image_url": "https://images.unsplash.com/photo-1509281373149-e957c6296406?w=640&h=400&fit=crop",
+        "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/41/Bones_logo.jpg/640px-Bones_logo.jpg",
         "views": random.randint(6000, 12000),
         "upvotes": random.randint(400, 900),
         "downvotes": random.randint(20, 60),
@@ -360,7 +360,7 @@ Ces symboles ne sont pas la par esthétique. C'est un **systeme de communication
 
 Le programme {g("MK-Ultra", "Programme secret de la CIA (1953-1973) de recherche sur le controle mental. Declassifie en 1977. Impliquait LSD, hypnose, torture, privation sensorielle sur des sujets non consentants.")} est l'une des rares "theories du complot" confirmees par le gouvernement americain lui-meme. De 1953 a 1973, la {g("CIA", "Central Intelligence Agency. Service de renseignement exterieur des Etats-Unis. A mene des dizaines de programmes secrets impliquant torture, assassinats, et experimentation humaine.")} a mene des experiences de controle mental sur des **milliers de citoyens americains** sans leur consentement.
 
-{article_img("https://images.unsplash.com/photo-1517373116369-9bdb8cdc9f62?w=800&h=450&fit=crop", "Documents declassifies MK-Ultra - la preuve que le controle mental est un fait, pas une theorie")}
+{article_img("https://upload.wikimedia.org/wikipedia/commons/thumb/e/e6/FrankChurch.jpg/800px-FrankChurch.jpg", "Documents declassifies MK-Ultra - la preuve que le controle mental est un fait, pas une theorie")}
 
 ### Les experiences
 
@@ -371,7 +371,7 @@ Sous la direction du Dr. {g("Sidney Gottlieb", "Chimiste de la CIA surnomme le '
 - **Hypnose** et suggestion post-hypnotique
 - Creation d'**assassins programmes** ({g("Manchurian Candidate", "Concept d'un assassin programme par hypnose et conditionnement pour tuer sur commande, sans souvenir conscient de sa mission. Le film de 1962 s'inspire directement des recherches MK-Ultra.")})
 
-{sensitive_img("https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?w=800&h=450&fit=crop", "Experimentation MK-Ultra - des sujets humains soumis a la torture psychologique dans des laboratoires secrets")}
+{sensitive_img("https://upload.wikimedia.org/wikipedia/commons/thumb/7/7f/Donald_Ewen_Cameron_canmedaj01237-0046-a.jpg/800px-Donald_Ewen_Cameron_canmedaj01237-0046-a.jpg", "Experimentation MK-Ultra - des sujets humains soumis a la torture psychologique dans des laboratoires secrets")}
 
 ### Le Dr. Cameron et l'hopital Allan Memorial
 
@@ -392,7 +392,7 @@ MK-Ultra est officiellement termine. Mais ses successeurs - {g("Project Monarch"
         "classification": "confidentiel",
         "credibility": "documente",
         "featured": False,
-        "image_url": "https://images.unsplash.com/photo-1517373116369-9bdb8cdc9f62?w=640&h=400&fit=crop",
+        "image_url": "https://upload.wikimedia.org/wikipedia/commons/4/4f/DeclassifiedMKULTRA.jpg",
         "views": random.randint(3000, 8000),
         "upvotes": random.randint(200, 500),
         "downvotes": random.randint(5, 20),
@@ -406,7 +406,7 @@ MK-Ultra est officiellement termine. Mais ses successeurs - {g("Project Monarch"
 
 Chaque annee, environ 130 des personnes les plus puissantes de la planete se reunissent dans un hotel de luxe barre par la police et les services secrets. **Aucune couverture mediatique**. Aucun compte-rendu officiel. Aucune transparence. C'est le {g("Groupe Bilderberg", "Conference annuelle fondee en 1954 a l'hotel Bilderberg aux Pays-Bas. Reunit environ 130 leaders politiques, financiers, militaires et mediatiques d'Europe et d'Amerique du Nord.")}.
 
-{article_img("https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&h=450&fit=crop", "Les reunions Bilderberg se deroulent dans des hotels de luxe isoles, sous protection militaire")}
+{article_img("https://upload.wikimedia.org/wikipedia/commons/thumb/5/58/Bernhard_of_Lippe-Biesterfeld_1976.jpg/800px-Bernhard_of_Lippe-Biesterfeld_1976.jpg", "Les reunions Bilderberg se deroulent dans des hotels de luxe isoles, sous protection militaire")}
 
 ### Qui participe ?
 
@@ -426,7 +426,7 @@ Plusieurs observateurs ont note que les **decisions mondiales majeures** suivent
 - 2008 : Obama et Hillary Clinton disparaissent lors d'une soiree de campagne. Ils etaient a Bilderberg
 - La **crise de l'euro**, le **Brexit**, les **sanctions contre la Russie** - tous discutes a Bilderberg avant d'etre "decides" par les gouvernements
 
-{sensitive_img("https://images.unsplash.com/photo-1529107386315-e1a2ed48a620?w=800&h=450&fit=crop", "Hotel de luxe isole - lieu typique des conferences Bilderberg, entoure de securite militaire")}
+{sensitive_img("https://upload.wikimedia.org/wikipedia/commons/thumb/5/50/Bohemian_Grove_Members_During_Spring_Jinx_Encampment.jpg/800px-Bohemian_Grove_Members_During_Spring_Jinx_Encampment.jpg", "Hotel de luxe isole - lieu typique des conferences Bilderberg, entoure de securite militaire")}
 
 ### La {g("Commission Trilaterale", "Fondee en 1973 par David Rockefeller. Complement de Bilderberg, incluant le Japon et l'Asie-Pacifique. Zbigniew Brzezinski en fut le premier directeur.")} : l'extension
 
@@ -439,7 +439,7 @@ Quand Bilderberg s'est avere insuffisant pour inclure l'Asie, David Rockefeller 
         "classification": "secret",
         "credibility": "documente",
         "featured": False,
-        "image_url": "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=640&h=400&fit=crop",
+        "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/bc/Bilderberg_-_Oosterbeek.jpg/640px-Bilderberg_-_Oosterbeek.jpg",
         "views": random.randint(3000, 7000),
         "upvotes": random.randint(150, 400),
         "downvotes": random.randint(8, 30),
@@ -453,7 +453,7 @@ Quand Bilderberg s'est avere insuffisant pour inclure l'Asie, David Rockefeller 
 
 Au coeur de l'Alaska, 180 antennes geantes pointent vers le ciel. C'est {g("HAARP", "High-frequency Active Auroral Research Program. Installation militaire americaine en Alaska composee de 180 antennes haute frequence. Capable d'emettre 3.6 megawatts dans l'ionosphere.")} - le High-frequency Active Auroral Research Program. Officiellement : "recherche atmospherique". En realite : l'**arme climatique la plus puissante** jamais construite.
 
-{article_img("https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=800&h=450&fit=crop", "Installation HAARP en Alaska - 180 antennes capables de modifier l'ionosphere terrestre")}
+{article_img("https://upload.wikimedia.org/wikipedia/commons/thumb/e/ee/HAARP_Antenna_Array_Transmitter_Buildings.jpg/800px-HAARP_Antenna_Array_Transmitter_Buildings.jpg", "Installation HAARP en Alaska - 180 antennes capables de modifier l'ionosphere terrestre")}
 
 ### Comment ca marche
 
@@ -470,7 +470,7 @@ HAARP bombarde l'{g("ionosphere", "Couche de l'atmosphere terrestre entre 60 et 
 - **Ouragan Katrina 2005** : trajectoire anormale et intensification inexpliquee
 - **Inondations en Pakistan 2010** : Hugo Chavez accuse les USA d'utiliser HAARP
 
-{sensitive_img("https://images.unsplash.com/photo-1534088568595-a066f410bcda?w=800&h=450&fit=crop", "Catastrophes naturelles ou armes climatiques ? Les coincidences entre activite HAARP et desastres sont troublantes")}
+{sensitive_img("https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/Contrail.fourengined.arp.jpg/800px-Contrail.fourengined.arp.jpg", "Catastrophes naturelles ou armes climatiques ? Les coincidences entre activite HAARP et desastres sont troublantes")}
 
 ### Les {g("chemtrails", "Trainees chimiques. Theorie selon laquelle les trainees blanches des avions ne sont pas de la vapeur d'eau mais des produits chimiques repandus intentionnellement : baryum, aluminium, strontium.")} : le complement aerien
 
@@ -487,7 +487,7 @@ Pourquoi envoyer une armee quand on peut detruire l'economie d'un pays en provoq
         "classification": "confidentiel",
         "credibility": "speculatif",
         "featured": False,
-        "image_url": "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=640&h=400&fit=crop",
+        "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/71/HAARP20l.jpg/640px-HAARP20l.jpg",
         "views": random.randint(3000, 7000),
         "upvotes": random.randint(150, 400),
         "downvotes": random.randint(10, 35),

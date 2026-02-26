@@ -15,18 +15,35 @@ RATE_WINDOW = 60  # secondes
 class GeminiService:
     """Gere toutes les interactions avec l'API Google Gemini."""
 
+    # Modeles a essayer dans l'ordre (fallback si quota depasse)
+    MODELS = ["gemini-2.0-flash-lite", "gemini-1.5-flash", "gemini-2.0-flash"]
+
     def __init__(self):
         api_key = os.environ.get("GEMINI_API_KEY", "")
         self._available = False
+        self.model = None
         if api_key:
             try:
                 genai.configure(api_key=api_key)
-                self.model = genai.GenerativeModel("gemini-2.0-flash")
-                self._available = True
+                # Essayer chaque modele jusqu'a en trouver un disponible
+                for model_name in self.MODELS:
+                    try:
+                        model = genai.GenerativeModel(model_name)
+                        # Test rapide pour verifier que le modele repond
+                        model.generate_content("test", generation_config={"max_output_tokens": 5})
+                        self.model = model
+                        self._model_name = model_name
+                        self._available = True
+                        break
+                    except Exception:
+                        continue
+                if not self._available:
+                    # Fallback: utiliser le premier modele sans test
+                    self.model = genai.GenerativeModel(self.MODELS[0])
+                    self._model_name = self.MODELS[0]
+                    self._available = True
             except Exception:
                 self.model = None
-        else:
-            self.model = None
         self._request_times = []
         self._lock = threading.Lock()
 

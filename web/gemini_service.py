@@ -2,6 +2,7 @@
 et le chatbot IA du wiki des conspirations."""
 
 import os
+import re
 import time
 import threading
 
@@ -10,6 +11,22 @@ import google.generativeai as genai
 # Rate limiting: 15 req/min sur l'API gratuite
 RATE_LIMIT = 15
 RATE_WINDOW = 60  # secondes
+
+
+def _clean_error(error_str):
+    """Nettoie les messages d'erreur Gemini pour l'affichage utilisateur."""
+    e = str(error_str)
+    if "quota" in e.lower() or "429" in e or "RESOURCE_EXHAUSTED" in e:
+        return "Quota API atteint. Reessayez dans quelques minutes."
+    if "403" in e or "PERMISSION_DENIED" in e:
+        return "Cle API invalide ou non autorisee."
+    if "404" in e or "NOT_FOUND" in e:
+        return "Modele IA non disponible."
+    # Tronquer les erreurs longues (proto bruts)
+    clean = re.sub(r'\{[^}]*\}', '', e).strip()
+    if len(clean) > 150:
+        clean = clean[:150] + "..."
+    return clean or "Erreur inconnue."
 
 
 class GeminiService:
@@ -22,14 +39,18 @@ class GeminiService:
         api_key = os.environ.get("GEMINI_API_KEY", "")
         self._available = False
         self.model = None
+        self._all_models = []
         if api_key:
             try:
                 genai.configure(api_key=api_key)
-                # Essayer chaque modele jusqu'a en trouver un disponible
+                # Preparer tous les modeles pour fallback runtime
                 for model_name in self.MODELS:
+                    self._all_models.append(
+                        (model_name, genai.GenerativeModel(model_name))
+                    )
+                # Essayer chaque modele jusqu'a en trouver un disponible
+                for model_name, model in self._all_models:
                     try:
-                        model = genai.GenerativeModel(model_name)
-                        # Test rapide pour verifier que le modele repond
                         model.generate_content("test", generation_config={"max_output_tokens": 5})
                         self.model = model
                         self._model_name = model_name
@@ -37,10 +58,9 @@ class GeminiService:
                         break
                     except Exception:
                         continue
-                if not self._available:
+                if not self._available and self._all_models:
                     # Fallback: utiliser le premier modele sans test
-                    self.model = genai.GenerativeModel(self.MODELS[0])
-                    self._model_name = self.MODELS[0]
+                    self._model_name, self.model = self._all_models[0]
                     self._available = True
             except Exception:
                 self.model = None
@@ -114,11 +134,22 @@ REGLES :
 - NE genere PAS de sources/URLs (elles seront ajoutees separement)
 """
 
-        try:
-            response = self.model.generate_content(prompt)
-            return response.text, None
-        except Exception as e:
-            return None, f"Erreur Gemini : {str(e)}"
+        # Essayer chaque modele disponible (fallback si quota)
+        last_error = None
+        models_to_try = [(self._model_name, self.model)] + [
+            (n, m) for n, m in self._all_models if n != self._model_name
+        ]
+        for model_name, model in models_to_try:
+            try:
+                response = model.generate_content(prompt)
+                if model_name != self._model_name:
+                    self.model = model
+                    self._model_name = model_name
+                return response.text, None
+            except Exception as e:
+                last_error = e
+                continue
+        return None, f"Erreur Gemini : {_clean_error(last_error)}"
 
     def generate_summary(self, content, max_length=200):
         """Genere un resume court d'un article."""
@@ -176,12 +207,24 @@ LIMITES :
 
         messages.append({"role": "user", "parts": [user_message]})
 
-        try:
-            chat = self.model.start_chat(history=messages[:-1])
-            response = chat.send_message(user_message)
-            return response.text, None
-        except Exception as e:
-            return None, f"ORACLE est temporairement indisponible : {str(e)}"
+        # Essayer chaque modele disponible (fallback si quota)
+        last_error = None
+        models_to_try = [(self._model_name, self.model)] + [
+            (n, m) for n, m in self._all_models if n != self._model_name
+        ]
+        for model_name, model in models_to_try:
+            try:
+                chat = model.start_chat(history=messages[:-1])
+                response = chat.send_message(user_message)
+                # Si un autre modele a fonctionne, le retenir
+                if model_name != self._model_name:
+                    self.model = model
+                    self._model_name = model_name
+                return response.text, None
+            except Exception as e:
+                last_error = e
+                continue
+        return None, f"ORACLE est temporairement indisponible : {_clean_error(last_error)}"
 
     # ── Suggestion de tags ────────────────────────────────────
 
